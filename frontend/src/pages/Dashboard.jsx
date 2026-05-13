@@ -61,6 +61,11 @@ export default function Dashboard() {
   const [ratingValue, setRatingValue] = useState(5);
   const [ratingComment, setRatingComment] = useState('');
   const [submittingRating, setSubmittingRating] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [seenIds, setSeenIds] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('sentria_seen_notifs') || '[]')); }
+    catch { return new Set(); }
+  });
 
   const handleRate = async () => {
     if (!ratingTarget || submittingRating) return;
@@ -119,9 +124,14 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button className="relative h-11 w-11 rounded-2xl bg-surfaceLight border border-black/[0.06] flex items-center justify-center text-textMuted hover:text-textMain transition-colors">
+            <button 
+              onClick={() => { setShowNotifications(true); const ids = complaints.map(c=>c.id); localStorage.setItem('sentria_seen_notifs', JSON.stringify(ids)); setSeenIds(new Set(ids)); }}
+              className="relative h-11 w-11 rounded-2xl bg-surfaceLight border border-black/[0.06] flex items-center justify-center text-textMuted hover:text-textMain transition-colors"
+            >
               <Bell size={18} />
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-danger rounded-full" />
+              {complaints.filter(c => !seenIds.has(c.id)).length > 0 && (
+                <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-danger rounded-full border-2 border-white" />
+              )}
             </button>
             <button onClick={logout} className="h-11 w-11 rounded-2xl bg-surfaceLight border border-black/[0.06] flex items-center justify-center text-textMuted hover:text-danger transition-colors">
               <LogOut size={16} />
@@ -296,6 +306,75 @@ export default function Dashboard() {
                 <button disabled={submittingRating} onClick={handleRate} className="flex-1 bg-primary text-white py-4 rounded-2xl text-sm font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
                   {submittingRating ? <Activity size={18} className="animate-spin" /> : 'Submit Rating'}
                 </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Notifications Panel */}
+      <AnimatePresence>
+        {showNotifications && (
+          <>
+            <motion.div
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[90]"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowNotifications(false)}
+            />
+            <motion.div
+              className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-surface rounded-t-[2rem] z-[100] shadow-elevated"
+              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25 }}
+            >
+              <div className="flex items-center justify-between p-6 pb-4 border-b border-black/[0.05]">
+                <div>
+                  <h3 className="font-bold font-serif text-lg text-textMain">Notifications</h3>
+                  <p className="text-xs text-textMuted">{complaints.length} complaint update{complaints.length !== 1 ? 's' : ''}</p>
+                </div>
+                <button onClick={() => setShowNotifications(false)} className="p-2 rounded-full bg-surfaceLight text-textMuted">
+                  <Zap size={16} />
+                </button>
+              </div>
+              <div className="overflow-y-auto max-h-[60vh] p-4 space-y-3 pb-8">
+                {complaints.length === 0 ? (
+                  <div className="text-center py-12 text-textMuted">
+                    <Bell size={40} className="mx-auto mb-3 opacity-20" />
+                    <p className="text-sm">No complaints yet. Report an issue to get started!</p>
+                  </div>
+                ) : complaints.map((c) => {
+                  const isNew = !seenIds.has(c.id);
+                  const icon = /resolved|completed/i.test(c.status) ? '✅' : /progress/i.test(c.status) ? '🔧' : /assigned/i.test(c.status) ? '👷' : '📋';
+                  const statusMsg = /resolved|completed/i.test(c.status)
+                    ? 'Your complaint has been resolved!'
+                    : /progress/i.test(c.status)
+                    ? `Work is in progress by ${c.assigned_officer_name || 'a field officer'}`
+                    : /assigned/i.test(c.status)
+                    ? `Assigned to ${c.assigned_officer_name || 'an officer'}`
+                    : 'Your complaint is pending assignment';
+                  return (
+                    <motion.div
+                      key={c.id}
+                      onClick={() => { setShowNotifications(false); navigate(`/track/${c.id}`); }}
+                      className={`p-4 rounded-2xl border cursor-pointer transition-all hover:shadow-md ${isNew ? 'bg-primary/5 border-primary/20' : 'bg-surfaceLight border-black/[0.05]'}`}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl shrink-0">{icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="text-xs font-bold text-textMain truncate">{c.title}</p>
+                            {isNew && <span className="shrink-0 px-1.5 py-0.5 bg-primary text-white text-[9px] font-bold rounded-md">NEW</span>}
+                          </div>
+                          <p className="text-[11px] text-textMuted leading-relaxed">{statusMsg}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${statusColor(c.status)}`}>{c.status}</span>
+                            <span className="text-[9px] text-textMuted">{formatRelativeTime(c.created_at)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
               </div>
             </motion.div>
           </>

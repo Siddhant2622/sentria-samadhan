@@ -425,7 +425,7 @@ Respond ONLY with a JSON object:
             contents: prompt
         });
 
-        const raw = extractJson(response.text);
+        const raw = extractJson(response.text());
         const analysis = normalizeAnalysis(raw);
         
         res.json({ success: true, analysis });
@@ -819,10 +819,10 @@ Return ONLY valid JSON with these exact keys:
 
       const response = await ai.models.generateContent({
         model: 'gemini-1.5-flash',
-        contents: [prompt, imagePart]
+        contents: [{ role: 'user', parts: [{ text: prompt }, imagePart] }]
       });
 
-      const analysisData = normalizeAnalysis(extractJson(response.text));
+      const analysisData = normalizeAnalysis(extractJson(response.text()));
 
       if (!analysisData.is_civic_issue) {
         fs.unlink(filePath, () => {});
@@ -861,28 +861,25 @@ app.post('/api/chat/assistant', async (req, res) => {
     }
 
     try {
-        const chat = ai.getGenerativeModel({ model: "gemini-1.5-flash" }).startChat({
-            history: history.map(h => ({
-                role: h.sender === 'user' ? 'user' : 'model',
-                parts: [{ text: h.text }],
-            })),
-            generationConfig: {
-                maxOutputTokens: 500,
-            },
+        // Build conversation history
+        const historyText = (history || []).map(h => `${h.sender === 'user' ? 'Citizen' : 'AI'}: ${h.text}`).join('\n');
+        
+        const prompt = `You are Sentria AI Civic Assistant helping a citizen file a government complaint.
+Complaint Context: ${JSON.stringify(complaintContext)}
+Conversation so far:
+${historyText}
+Citizen just said: "${complaintContext.description}"
+
+Respond helpfully and concisely (max 2 sentences). Ask for specific details that will help authorities (exact location, duration of issue, severity). Be empathetic and professional.`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-1.5-flash',
+            contents: prompt
         });
-
-        const prompt = `You are the Sentira AI Civic Assistant. 
-        Context of current complaint: ${JSON.stringify(complaintContext)}
-        User message: "${complaintContext.description}"
-        Help the user provide better details for the authorities. Be professional, empathetic, and concise. 
-        Focus on location accuracy and issue severity.`;
-
-        const result = await chat.sendMessage(prompt);
-        const response = await result.response;
         res.json({ success: true, reply: response.text() });
     } catch (error) {
         console.error("Chat Error:", error);
-        res.status(500).json({ success: false, error: 'Chat Assistant failed' });
+        res.status(500).json({ success: false, error: 'Chat Assistant failed', details: error.message });
     }
 });
 

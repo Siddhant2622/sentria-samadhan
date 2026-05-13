@@ -147,13 +147,19 @@ export default function ReportIssue() {
   };
 
   const handleManualReport = () => {
+    // Clear any previously uploaded photo so it doesn't leak into text report
+    setPreviewUrl(null);
+    setUploadedMediaUrl('');
+    setImageHash('');
     setIsTextReport(true);
     setAnalysis({
       title: '',
       category: 'Other',
       urgency_level: 'Medium',
-      department_id: 'MUNICIPAL_CORP'
+      department_id: 'MUNICIPAL_CORP',
+      ai_analysis: 'Hello! Please describe your civic issue in detail. I will help route it to the right authority.'
     });
+    setChatHistory([{ sender: 'ai', text: 'Hello! Please describe your civic issue in detail. I will help route it to the right authority.' }]);
     setStep(3);
     requestLocation();
   };
@@ -163,8 +169,14 @@ export default function ReportIssue() {
     if(!chatMsg.trim() || isChatLoading) return;
     const userMsg = chatMsg;
     setChatMsg('');
-    setChatHistory([...chatHistory, { sender: 'user', text: userMsg }]);
+    setChatHistory(prev => [...prev, { sender: 'user', text: userMsg }]);
     setIsChatLoading(true);
+    
+    // If text report, also update the title from first message
+    if (isTextReport && !analysis?.title) {
+      setAnalysis(prev => ({ ...prev, title: userMsg.slice(0, 60) }));
+    }
+    
     try {
       const res = await fetch(`${API_BASE}/api/chat/assistant`, {
         method: 'POST',
@@ -175,9 +187,14 @@ export default function ReportIssue() {
         })
       });
       const data = await res.json();
-      setChatHistory(prev => [...prev, { sender: 'ai', text: data.reply }]);
+      if (data.reply) {
+        setChatHistory(prev => [...prev, { sender: 'ai', text: data.reply }]);
+      } else {
+        setChatHistory(prev => [...prev, { sender: 'ai', text: 'Thank you for the details. Please confirm your location and submit when ready.' }]);
+      }
     } catch (e) {
       console.error(e);
+      setChatHistory(prev => [...prev, { sender: 'ai', text: 'Details noted. Please submit your report when ready.' }]);
     } finally {
       setIsChatLoading(false);
     }
