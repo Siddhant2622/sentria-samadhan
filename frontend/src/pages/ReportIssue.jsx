@@ -285,22 +285,31 @@ export default function ReportIssue() {
                        <input value={analysis.title} onChange={e => setAnalysis({...analysis, title: e.target.value})} className="w-full bg-transparent border-none p-0 text-lg font-bold focus:ring-0" />
                     </div>
                     <div>
-                       <label className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Category & Department Rating</label>
-                       <div className="grid grid-cols-2 gap-2">
-                          {Object.keys(CIVIC_CATEGORIES_LIST).map((cat) => {
-                             const deptId = CIVIC_CATEGORIES_LIST[cat].department_id;
-                             const ratingData = deptRatings[deptId] || { avg: 5.0, count: 0 };
-                             return (
-                               <button key={cat} onClick={() => setAnalysis({...analysis, category: cat, department_id: deptId})}
-                                 className={`p-3 rounded-xl border text-xs font-bold text-left flex flex-col gap-1 transition-all ${analysis.category === cat ? 'bg-primary border-primary text-white' : 'bg-white border-slate-200 text-slate-500'}`}>
-                                 <span>{cat}</span>
-                                 <div className={`flex items-center gap-1 text-[8px] ${analysis.category === cat ? 'text-white/80' : 'text-warning'}`}>
-                                    <Zap size={8} fill={analysis.category === cat ? 'white' : 'currentColor'} /> 
-                                    {ratingData.avg} ({ratingData.count})
-                                 </div>
-                               </button>
-                             );
-                          })}
+                       <label className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Target Department (AI Detected)</label>
+                       <div className="relative">
+                          <select 
+                            value={analysis.category} 
+                            onChange={(e) => {
+                              const cat = e.target.value;
+                              const deptId = CIVIC_CATEGORIES_LIST[cat].department_id;
+                              setAnalysis({...analysis, category: cat, department_id: deptId});
+                            }}
+                            className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold text-slate-700 appearance-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all pr-12 shadow-sm"
+                          >
+                             {Object.keys(CIVIC_CATEGORIES_LIST).map((cat) => (
+                               <option key={cat} value={cat}>{cat} — {CIVIC_CATEGORIES_LIST[cat].authority_name}</option>
+                             ))}
+                          </select>
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                             <Building2 size={18} />
+                          </div>
+                       </div>
+                       <div className="mt-2 flex items-center gap-2">
+                          <div className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-lg flex items-center gap-1.5">
+                             <Zap size={10} fill="currentColor" />
+                             Dept Rating: {deptRatings[analysis.department_id]?.avg || '5.0'} ({deptRatings[analysis.department_id]?.count || 0} reviews)
+                          </div>
+                          <p className="text-[10px] text-slate-400 italic">AI mapped this issue to {CIVIC_CATEGORIES_LIST[analysis.category]?.authority_name}</p>
                        </div>
                     </div>
                  </div>
