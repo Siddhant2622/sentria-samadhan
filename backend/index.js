@@ -421,7 +421,7 @@ Respond ONLY with a JSON object:
         `;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-1.5-flash',
             contents: prompt
         });
 
@@ -539,7 +539,7 @@ app.post('/api/auth/demo-login', (req, res) => {
 app.get('/api/ai/status', (req, res) => {
     res.json({
       configured: Boolean(ai),
-      model: 'gemini-2.5-flash',
+      model: 'gemini-1.5-flash',
       validation: 'strict civic image verification enabled'
     });
 });
@@ -818,7 +818,7 @@ Return ONLY valid JSON with these exact keys:
 `;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-1.5-flash',
         contents: [prompt, imagePart]
       });
 
@@ -861,7 +861,7 @@ app.post('/api/chat/assistant', async (req, res) => {
     }
 
     try {
-        const chat = ai.getGenerativeModel({ model: "gemini-2.5-flash" }).startChat({
+        const chat = ai.getGenerativeModel({ model: "gemini-1.5-flash" }).startChat({
             history: history.map(h => ({
                 role: h.sender === 'user' ? 'user' : 'model',
                 parts: [{ text: h.text }],
