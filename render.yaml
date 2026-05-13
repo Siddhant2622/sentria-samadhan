@@ -4,7 +4,7 @@ services:
     name: sentria-samadhan-backend
     env: node
     rootDir: backend
-    buildCommand: npm install && npm rebuild sqlite3
+    buildCommand: npm install --build-from-source
     startCommand: npm start
     envVars:
       - key: PORT

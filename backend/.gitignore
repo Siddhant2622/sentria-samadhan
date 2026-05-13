@@ -1,5 +1,6 @@
-firebase-service-account.json
-.env
 node_modules/
+package-lock.json
+*.db
+.env
+firebase-service-account.json
 uploads/
-sentira.db
