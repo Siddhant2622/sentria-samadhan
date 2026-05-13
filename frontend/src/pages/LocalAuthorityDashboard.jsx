@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { API_BASE } from '../lib/config';
 import { useNavigate } from 'react-router-dom';
 import { Shield, MapPin, Clock, CheckCircle, Camera, AlertTriangle, UserX, AlertCircle, X, ChevronRight, Truck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -45,7 +46,7 @@ export default function LocalAuthorityDashboard() {
     if (!activeTask) return;
     setSubmitting(true);
     try {
-      await fetch(`/api/complaints/${activeTask.id}/progress`, {
+      await fetch(`${API_BASE}/api/complaints/${activeTask.id}/progress`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -73,14 +74,14 @@ export default function LocalAuthorityDashboard() {
     setSubmitting(true);
     try {
       // In a real app, this would hit a specific endpoint to flag fake and penalize citizen
-      await fetch(`/api/admin/users/${activeTask.citizen_id}/ban`, {
+      await fetch(`${API_BASE}/api/admin/users/${activeTask.citizen_id}/ban`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_banned: true, ban_reason: 'Flagged by field officer for submitting fake reports.' })
       });
       
       // Mark complaint as resolved/closed
-      await fetch(`/api/complaints/${activeTask.id}/progress`, {
+      await fetch(`${API_BASE}/api/complaints/${activeTask.id}/progress`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

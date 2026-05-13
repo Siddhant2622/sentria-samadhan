@@ -290,7 +290,7 @@ export function AuthProvider({ children }) {
     try {
       setError('');
       if (user && user.id && !user.id.startsWith('demo-user')) {
-        const response = await fetch(`${BACKEND}/api/users/${user.id}/district`, {
+        const response = await fetch(`${API_BASE}/api/users/${user.id}/district`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ district: newDistrict }),
@@ -316,7 +316,7 @@ export function AuthProvider({ children }) {
   const demoLogin = async (name = 'Demo Citizen') => {
     try {
       setError('');
-      const response = await fetch(`${BACKEND}/api/auth/demo-login`, {
+      const response = await fetch(`${API_BASE}/api/auth/demo-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name }),

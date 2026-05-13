@@ -54,7 +54,7 @@ export default function LiveTracking() {
       // Check feedback status if complaint is completed
       if (data?.progress_percentage === 100) {
         const citizenId = localStorage.getItem('sentira_user_id') || 'demo-user'; // fallback for demo
-        fetch(`/api/feedback/check?citizen_id=${citizenId}&complaint_id=${id}`)
+        fetch(`${API_BASE}/api/feedback/check?citizen_id=${citizenId}&complaint_id=${id}`)
           .then(res => res.json())
           .then(check => setHasSubmittedFeedback(check.hasSubmitted))
           .catch(() => {});
@@ -88,7 +88,7 @@ export default function LiveTracking() {
     if (!escalateReason.trim()) return;
     setEscalating(true);
     try {
-      await fetch(`/api/complaints/${id}/escalate`, {
+      await fetch(`${API_BASE}/api/complaints/${id}/escalate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reason: escalateReason, target_level: 'Senior Officer' }),

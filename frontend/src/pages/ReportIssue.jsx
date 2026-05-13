@@ -123,7 +123,7 @@ export default function ReportIssue() {
       setPreviewUrl(scanned.previewUrl);
       const formData = new FormData();
       formData.append('image', scanned.file);
-      const response = await fetch('/api/complaints/analyze', { method: 'POST', body: formData });
+      const response = await fetch(`${API_BASE}/api/complaints/analyze`, { method: 'POST', body: formData });
       const data = await response.json();
       if(response.ok && data.success) {
         if (data.is_duplicate) {
@@ -166,7 +166,7 @@ export default function ReportIssue() {
     setChatHistory([...chatHistory, { sender: 'user', text: userMsg }]);
     setIsChatLoading(true);
     try {
-      const res = await fetch('/api/chat/assistant', {
+      const res = await fetch(`${API_BASE}/api/chat/assistant`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -199,7 +199,7 @@ export default function ReportIssue() {
       image_hash: imageHash
     };
     try {
-      const res = await fetch('/api/complaints', {
+      const res = await fetch(`${API_BASE}/api/complaints`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(finalData)

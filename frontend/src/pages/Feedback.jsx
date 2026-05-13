@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_BASE } from '../lib/config';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Star, ArrowLeft, Send, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -22,7 +23,7 @@ export default function Feedback() {
     
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/feedback', {
+      const response = await fetch(`${API_BASE}/api/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
