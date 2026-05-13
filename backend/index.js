@@ -806,12 +806,13 @@ Return ONLY valid JSON with these exact keys:
   "priority_score": number from 1 to 10,
   "confidence": number from 0.0 to 1.0,
   "authority_level": "Municipal|State|National",
-  "department_id": "matching department id",
+  "department_id": "matching department id (e.g. PWD, SANITATION, FIRE_DEPT)",
   "authority_name": "matching authority name",
   "evidence_quality": "Low|Medium|High",
   "location_hint": "visible landmark or empty string",
   "address": "Descriptive address or location hint extracted from image context",
   "recommended_action": "action for authority",
+  "ai_analysis": "Introductory message for the AI Chatbot to start the conversation with the citizen",
   "citizen_question": "one short follow-up question for the citizen"
 }
 `;
@@ -851,7 +852,39 @@ Return ONLY valid JSON with these exact keys:
     }
 });
 
-// Text route moved up
+// 3. AI Chat Assistant Route
+app.post('/api/chat/assistant', async (req, res) => {
+    const { history, complaintContext } = req.body;
+    
+    if(!ai) {
+        return res.status(503).json({ success: false, error: 'AI not configured.' });
+    }
+
+    try {
+        const chat = ai.getGenerativeModel({ model: "gemini-2.5-flash" }).startChat({
+            history: history.map(h => ({
+                role: h.sender === 'user' ? 'user' : 'model',
+                parts: [{ text: h.text }],
+            })),
+            generationConfig: {
+                maxOutputTokens: 500,
+            },
+        });
+
+        const prompt = `You are the Sentira AI Civic Assistant. 
+        Context of current complaint: ${JSON.stringify(complaintContext)}
+        User message: "${complaintContext.description}"
+        Help the user provide better details for the authorities. Be professional, empathetic, and concise. 
+        Focus on location accuracy and issue severity.`;
+
+        const result = await chat.sendMessage(prompt);
+        const response = await result.response;
+        res.json({ success: true, reply: response.text() });
+    } catch (error) {
+        console.error("Chat Error:", error);
+        res.status(500).json({ success: false, error: 'Chat Assistant failed' });
+    }
+});
 
 // 4. Submit Complaint Route
 app.post('/api/complaints', (req, res) => {

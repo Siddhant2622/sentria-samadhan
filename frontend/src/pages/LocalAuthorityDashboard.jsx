@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { API_BASE } from '../lib/config';
 import { useNavigate } from 'react-router-dom';
-import { Shield, MapPin, Clock, CheckCircle, Camera, AlertTriangle, UserX, AlertCircle, X, ChevronRight, Truck } from 'lucide-react';
+import { Shield, MapPin, Clock, CheckCircle, Camera, AlertTriangle, UserX, AlertCircle, X, ChevronRight, Truck, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchComplaints, statusColor, urgencyColor } from '../lib/api';
 import { useAuth } from '../lib/AuthContext';
@@ -217,14 +217,24 @@ export default function LocalAuthorityDashboard() {
                       </a>
                     </div>
                   </div>
+
+                  <div className="flex items-start gap-2 pt-3 border-t border-black/5">
+                    <Shield size={14} className="text-primary shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-[10px] text-textMuted uppercase font-bold">Citizen Description</p>
+                      <p className="text-xs font-medium leading-relaxed italic text-textMain">
+                        "{activeTask.description || 'No description provided.'}"
+                      </p>
+                    </div>
+                  </div>
                   
                   {activeTask.latitude && activeTask.longitude && (
                     <div className="pt-3 border-t border-black/5">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <Shield size={12} className="text-primary" />
+                          <Activity size={12} className="text-primary" />
                           <div className="flex flex-col">
-                            <span className="text-[10px] font-bold text-textMuted uppercase">Automated GPS</span>
+                            <span className="text-[10px] font-bold text-textMuted uppercase">Precision GPS</span>
                             <span className="text-[10px] font-mono text-textMuted">{activeTask.latitude.toFixed(6)}, {activeTask.longitude.toFixed(6)}</span>
                           </div>
                         </div>
@@ -234,7 +244,7 @@ export default function LocalAuthorityDashboard() {
                           rel="noreferrer"
                           className="bg-primary text-white text-[10px] font-bold px-3 py-2 rounded-lg shadow-soft"
                         >
-                          Navigate via GPS
+                          GPS Map
                         </a>
                       </div>
                     </div>
