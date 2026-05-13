@@ -421,11 +421,11 @@ Respond ONLY with a JSON object:
         `;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
+            model: 'gemini-2.0-flash',
             contents: prompt
         });
 
-        const raw = extractJson(response.text());
+        const raw = extractJson(response.text);
         const analysis = normalizeAnalysis(raw);
         
         res.json({ success: true, analysis });
@@ -539,7 +539,7 @@ app.post('/api/auth/demo-login', (req, res) => {
 app.get('/api/ai/status', (req, res) => {
     res.json({
       configured: Boolean(ai),
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.0-flash',
       validation: 'strict civic image verification enabled'
     });
 });
@@ -818,11 +818,14 @@ Return ONLY valid JSON with these exact keys:
 `;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-1.5-flash',
-        contents: [{ role: 'user', parts: [{ text: prompt }, imagePart] }]
+        model: 'gemini-2.0-flash',
+        contents: [
+          imagePart,
+          { text: prompt }
+        ]
       });
 
-      const analysisData = normalizeAnalysis(extractJson(response.text()));
+      const analysisData = normalizeAnalysis(extractJson(response.text));
 
       if (!analysisData.is_civic_issue) {
         fs.unlink(filePath, () => {});
@@ -873,10 +876,10 @@ Citizen just said: "${complaintContext.description}"
 Respond helpfully and concisely (max 2 sentences). Ask for specific details that will help authorities (exact location, duration of issue, severity). Be empathetic and professional.`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
+            model: 'gemini-2.0-flash',
             contents: prompt
         });
-        res.json({ success: true, reply: response.text() });
+        res.json({ success: true, reply: response.text });
     } catch (error) {
         console.error("Chat Error:", error);
         res.status(500).json({ success: false, error: 'Chat Assistant failed', details: error.message });
