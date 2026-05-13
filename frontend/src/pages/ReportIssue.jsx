@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { API_BASE } from '../lib/config';
 import { useNavigate } from 'react-router-dom';
 import { Camera, Image as ImageIcon, Sparkles, Send, MapPin, CheckCircle, ArrowLeft, Loader2, AlertTriangle, Building2, PlusCircle, Edit2, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -40,7 +41,7 @@ export default function ReportIssue() {
   const [deptRatings, setDeptRatings] = useState({});
 
   useEffect(() => {
-    fetch(`http://${window.location.hostname}:3001/api/superadmin/ratings`)
+    fetch(`${API_BASE}/api/superadmin/ratings`)
       .then(r => r.json())
       .then(data => {
         if (data.departments) setDeptRatings(data.departments);

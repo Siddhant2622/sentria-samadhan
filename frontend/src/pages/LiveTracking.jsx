@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, Truck, ShieldAlert, Phone, Flag, MapPin, ChevronUp, AlertTriangle, Clock, Info, Star, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchComplaint, statusColor, urgencyColor, openInGoogleMaps } from '../lib/api';
+import { API_BASE } from '../lib/config';
 
 const TRACKING_STEPS = [
   { id: 'submitted', label: 'Submitted', desc: 'System processed and created a civic ticket.' },
@@ -63,7 +64,7 @@ export default function LiveTracking() {
 
   useEffect(() => {
     if (complaint?.assigned_officer_id) {
-      fetch(`http://${window.location.hostname}:3001/api/superadmin/ratings`)
+      fetch(`${API_BASE}/api/superadmin/ratings`)
         .then(r => r.json())
         .then(data => {
           if (data.officers) {

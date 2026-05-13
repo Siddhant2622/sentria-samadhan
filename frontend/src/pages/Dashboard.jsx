@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, Clock, ArrowRight, ShieldCheck, Camera, Bell, Activity, Zap, LogOut, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchComplaints, formatRelativeTime, statusColor, urgencyColor, openInGoogleMaps } from '../lib/api';
+import { API_BASE } from '../lib/config';
 import { useAuth } from '../lib/AuthContext';
 import { useLanguage } from '../lib/LanguageContext';
 
@@ -40,7 +41,7 @@ export default function Dashboard() {
             const match = MP_DISTRICTS.find(d => detectedDistrict.toLowerCase().includes(d.toLowerCase()));
             
             if (match) {
-              await fetch(`http://${window.location.hostname}:3001/api/users/${user.id}/district`, {
+              await fetch(`${API_BASE}/api/users/${user.id}/district`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ district: match })
@@ -65,7 +66,7 @@ export default function Dashboard() {
     if (!ratingTarget || submittingRating) return;
     setSubmittingRating(true);
     try {
-      const res = await fetch(`http://${window.location.hostname}:3001/api/feedback`, {
+      const res = await fetch(`${API_BASE}/api/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
