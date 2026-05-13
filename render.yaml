@@ -16,7 +16,6 @@ services:
   # ── FRONTEND (Vite PWA) ──
   - type: web
     name: sentria-samadhan-frontend
-    plan: free
     env: static
     rootDir: frontend
     buildCommand: npm install && npm run build
