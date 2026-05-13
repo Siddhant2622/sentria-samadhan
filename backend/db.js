@@ -5,16 +5,21 @@ const fs = require('fs');
 const dbPath = process.env.DB_PATH || path.resolve(__dirname, 'sentria.db');
 const dbDir = path.dirname(dbPath);
 
-// Ensure directory exists for Render/Railway persistent disks
-if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true });
+// Only try to create directory if it's a custom path (like /data/)
+if (dbDir !== __dirname && !fs.existsSync(dbDir)) {
+    try {
+        fs.mkdirSync(dbDir, { recursive: true });
+    } catch (e) {
+        console.warn('Could not create DB directory, falling back to local:', e.message);
+    }
 }
 
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
-        console.error('Error opening database', err.message);
+        console.error('❌ DATABASE ERROR:', err.message);
+        process.exit(1); // Exit with error so Render shows it in logs
     } else {
-        console.log(`Connected to the SQLite database at: ${dbPath}`);
+        console.log(`✅ Connected to SQLite at: ${dbPath}`);
         
         // Initialize tables
         db.serialize(() => {
