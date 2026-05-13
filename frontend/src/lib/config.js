@@ -1,1 +1,2 @@
-export const API_BASE = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+// Use the live Render backend by default for production stability
+export const API_BASE = "https://sentria-samadhan-backend.onrender.com";
