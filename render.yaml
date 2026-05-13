@@ -1,0 +1,33 @@
+services:
+  # ── BACKEND (Node.js + SQLite) ──
+  - type: web
+    name: sentria-samadhan-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: DB_PATH
+        value: /data/sentria.db
+      - key: GEMINI_API_KEY
+        sync: false # Set this in Render dashboard
+    disk:
+      name: sentria-data
+      mountPath: /data
+      sizeGB: 1
+
+  # ── FRONTEND (Vite PWA) ──
+  - type: web
+    name: sentria-samadhan-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: sentria-samadhan-backend
+          type: web
+          property: host

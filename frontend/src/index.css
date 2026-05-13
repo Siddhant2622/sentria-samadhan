@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply text-textMain antialiased min-h-screen;
+    /* Warm Hanji paper gradient — subtle warmth like traditional Korean rice paper */
+    background: linear-gradient(168deg, #F5F0E8 0%, #F2EBE0 40%, #EDE6DA 100%);
+    background-attachment: fixed;
+    font-family: 'Noto Sans KR', 'Inter', sans-serif;
+  }
+
+  /* Custom selection color */
+  ::selection {
+    background: rgba(91, 123, 111, 0.15);
+    color: #2D2D2D;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-surface/90 backdrop-blur-xl border border-black/[0.06];
+    box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+  }
+
+  .korean-card {
+    @apply bg-surface rounded-2xl border border-black/[0.06] transition-all duration-300;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+  }
+
+  .korean-card:hover {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+    @apply border-black/[0.1];
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .map-grid {
+    background-image:
+      linear-gradient(rgba(91, 123, 111, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(91, 123, 111, 0.06) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  /* Subtle ink-wash texture overlay for hero areas */
+  .ink-wash {
+    position: relative;
+  }
+  .ink-wash::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 20%, rgba(91, 123, 111, 0.04) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 80%, rgba(196, 145, 123, 0.03) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Dancheong-inspired thin accent line */
+  .dancheong-line {
+    height: 3px;
+    background: linear-gradient(90deg, #5B7B6F, #7BA8A0, #C4917B, #D4A84B, #C75B5B);
+    border-radius: 2px;
+    opacity: 0.6;
+  }
+}

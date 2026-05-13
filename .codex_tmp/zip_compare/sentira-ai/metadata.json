@@ -1,0 +1,15 @@
+{
+  "name": "Sentira AI",
+  "description": "A futuristic AI-powered citizen grievance platform for reporting, analyzing, and tracking civic issues in real-time.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "AI Vision Analysis",
+    "Real-time Tracking",
+    "Smart Routing",
+    "Multi-lingual Voice Support"
+  ]
+}
