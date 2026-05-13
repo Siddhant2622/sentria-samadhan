@@ -43,7 +43,11 @@ function isSuperAdmin(email) {
   return SUPER_ADMIN_EMAILS.includes((email || '').toLowerCase().trim());
 }
 
-app.use(cors());
+app.use(cors({
+    origin: '*', // For the hackathon, we will allow all origins to ensure connectivity
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // Request logging for debugging
@@ -1336,6 +1340,7 @@ app.get('/api/district-admins/check', (req, res) => {
   });
 });
 
-app.listen(port, '0.0.0.0', () => {
-    console.log(`Sentria Samadhan Backend running on http://0.0.0.0:${port}`);
+const server = app.listen(port, '0.0.0.0', () => {
+    console.log(`Sentria Samadhan Backend running on port ${port}`);
 });
+server.timeout = 60000;
