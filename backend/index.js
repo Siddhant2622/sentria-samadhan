@@ -1109,7 +1109,12 @@ app.put('/api/complaints/:id/assign', (req, res) => {
 
 // 5. Get a specific complaint
 app.get('/api/complaints/:id', (req, res) => {
-    db.get(`SELECT * FROM complaints WHERE id = ?`, [req.params.id], (err, row) => {
+    db.get(`
+        SELECT c.*, u.phone as assigned_officer_phone 
+        FROM complaints c 
+        LEFT JOIN users u ON c.assigned_officer_id = u.id 
+        WHERE c.id = ?
+    `, [req.params.id], (err, row) => {
         if (err) return res.status(500).json({ error: err.message });
         if (!row) return res.status(404).json({ error: 'Complaint not found' });
         row.media_urls = JSON.parse(row.media_urls || '[]');
@@ -1325,14 +1330,14 @@ app.put('/api/users/:id/district', (req, res) => {
 
 // Officers Management
 app.get('/api/admin/officers', (req, res) => {
-    db.all("SELECT id, name, email, department, role, district, created_at FROM users WHERE role = 'Officer' ORDER BY created_at DESC", [], (err, rows) => {
+    db.all("SELECT id, name, email, phone, department, role, district, created_at FROM users WHERE role = 'Officer' ORDER BY created_at DESC", [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
     });
 });
 
 app.post('/api/admin/officers', (req, res) => {
-    const { name, email, department, district } = req.body;
+    const { name, email, phone, department, district } = req.body;
     if (!name || !department || !email) return res.status(400).json({ error: 'Name, email and department are required' });
     
     const officerEmail = email.toLowerCase().trim();
@@ -1342,8 +1347,8 @@ app.post('/api/admin/officers', (req, res) => {
         if (existing) {
             // Upgrade existing user to Officer
             db.run(
-                'UPDATE users SET role = ?, department = ?, name = ? WHERE id = ?',
-                ['Officer', department, name, existing.id],
+                'UPDATE users SET role = ?, department = ?, name = ?, phone = ? WHERE id = ?',
+                ['Officer', department, name, phone || '', existing.id],
                 function(updErr) {
                     if (updErr) return res.status(500).json({ error: updErr.message });
                     db.get('SELECT * FROM users WHERE id = ?', [existing.id], (err2, row) => {
@@ -1355,8 +1360,8 @@ app.post('/api/admin/officers', (req, res) => {
             // Create new officer record
             const officerId = 'AUTH-' + Date.now();
             db.run(
-                'INSERT INTO users (id, name, email, role, department, district) VALUES (?, ?, ?, ?, ?, ?)',
-                [officerId, name, officerEmail, 'Officer', department, district || ''],
+                'INSERT INTO users (id, name, email, phone, role, department, district) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                [officerId, name, officerEmail, phone || '', 'Officer', department, district || ''],
                 function(insErr) {
                     if (insErr) return res.status(500).json({ error: insErr.message });
                     db.get('SELECT * FROM users WHERE id = ?', [officerId], (err2, row) => {
@@ -1369,13 +1374,13 @@ app.post('/api/admin/officers', (req, res) => {
 });
 
 app.put('/api/admin/officers/:id', (req, res) => {
-    const { name, email, department } = req.body;
+    const { name, email, phone, department } = req.body;
     db.run(
-        'UPDATE users SET name = ?, email = ?, department = ? WHERE id = ? AND role = "Officer"',
-        [name, email || '', department, req.params.id],
+        'UPDATE users SET name = ?, email = ?, phone = ?, department = ? WHERE id = ? AND role = "Officer"',
+        [name, email || '', phone || '', department, req.params.id],
         function(err) {
             if (err) return res.status(500).json({ error: err.message });
-            db.get('SELECT id, name, email, department, role, district, created_at FROM users WHERE id = ?', [req.params.id], (err2, row) => {
+            db.get('SELECT id, name, email, phone, department, role, district, created_at FROM users WHERE id = ?', [req.params.id], (err2, row) => {
                 if (err2) return res.status(500).json({ error: err2.message });
                 res.json({ success: true, officer: row });
             });

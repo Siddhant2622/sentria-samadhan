@@ -22,7 +22,7 @@ export default function AdminDashboard() {
   const [banning, setBanning] = useState(false);
   const [showAddAuthority, setShowAddAuthority] = useState(false);
   const [editingOfficer, setEditingOfficer] = useState(null);
-  const [newAuthority, setNewAuthority] = useState({ name: '', department: '', email: '' });
+  const [newAuthority, setNewAuthority] = useState({ name: '', department: '', email: '', phone: '' });
   const [assigningTo, setAssigningTo] = useState(null);
   const [officerRatings, setOfficerRatings] = useState({});
   const [showNotifications, setShowNotifications] = useState(false);
@@ -281,7 +281,7 @@ export default function AdminDashboard() {
                 <div className="flex gap-2 mt-3 pt-3 border-t border-black/[0.04]">
                   <button onClick={() => {
                     setEditingOfficer(u);
-                    setNewAuthority({ name: u.name, department: u.department, email: u.email });
+                    setNewAuthority({ name: u.name, department: u.department, email: u.email, phone: u.phone || '' });
                     setShowAddAuthority(true);
                   }} className="flex-1 bg-surfaceLight text-textMain text-xs py-2 rounded-xl font-medium flex items-center justify-center gap-1 transition-colors hover:bg-black/[0.04]">
                     Edit
@@ -338,6 +338,8 @@ export default function AdminDashboard() {
                 placeholder="Authority Name (e.g. Ramesh P.)" className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm focus:outline-none focus:border-primary" />
               <input type="email" value={newAuthority.email} onChange={e => setNewAuthority({...newAuthority, email: e.target.value})}
                 placeholder="Google Email (for login)" className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm focus:outline-none focus:border-primary" />
+              <input type="tel" value={newAuthority.phone} onChange={e => setNewAuthority({...newAuthority, phone: e.target.value})}
+                placeholder="Phone Number (for citizen contact)" className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm focus:outline-none focus:border-primary" />
               <select value={newAuthority.department} onChange={e => setNewAuthority({...newAuthority, department: e.target.value})}
                 className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm focus:outline-none focus:border-primary">
                 <option value="">Select Department</option>
@@ -355,7 +357,7 @@ export default function AdminDashboard() {
                     fetch(url, {
                       method,
                       headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ name: newAuthority.name, email: newAuthority.email, department: newAuthority.department })
+                      body: JSON.stringify({ name: newAuthority.name, email: newAuthority.email, department: newAuthority.department, phone: newAuthority.phone })
                     })
                     .then(res => res.json())
                     .then(data => {
@@ -367,7 +369,7 @@ export default function AdminDashboard() {
                         }
                         setShowAddAuthority(false);
                         setEditingOfficer(null);
-                        setNewAuthority({ name: '', department: '', email: '' });
+                        setNewAuthority({ name: '', department: '', email: '', phone: '' });
                       } else {
                         alert(data.error);
                       }

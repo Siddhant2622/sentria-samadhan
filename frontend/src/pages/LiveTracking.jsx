@@ -265,7 +265,13 @@ export default function LiveTracking() {
                 )}
               </div>
             </div>
-            <button className="p-2 bg-primary/10 text-primary rounded-full"><Phone size={15} /></button>
+            <button 
+              onClick={() => complaint.assigned_officer_phone ? window.location.href = `tel:${complaint.assigned_officer_phone}` : alert('Phone number not available for this officer.')}
+              className="p-2 bg-primary/10 text-primary rounded-full transition-transform hover:scale-110 active:scale-95"
+              title={complaint.assigned_officer_phone || 'No phone number available'}
+            >
+              <Phone size={15} />
+            </button>
           </div>
         </div>
 
