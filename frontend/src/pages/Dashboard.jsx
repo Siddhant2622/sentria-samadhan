@@ -278,7 +278,7 @@ export default function Dashboard() {
         {ratingTarget && (
           <>
             <motion.div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[90]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => !submittingRating && setRatingTarget(null)} />
-            <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }} className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white rounded-t-[2.5rem] z-[100] p-8 shadow-elevated">
+            <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }} className="fixed bottom-0 left-0 right-0 mx-auto w-full max-w-md bg-white rounded-t-[2.5rem] z-[100] p-8 shadow-elevated">
               <div className="w-10 h-1 bg-black/10 rounded-full mx-auto mb-6" />
               <h3 className="font-bold text-xl mb-1 font-serif text-slate-900">Rate Quality of Service</h3>
               <p className="text-textMuted text-sm mb-6">How was your experience with: <strong>{ratingTarget.title}</strong>?</p>
@@ -322,7 +322,7 @@ export default function Dashboard() {
               onClick={() => setShowNotifications(false)}
             />
             <motion.div
-              className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-surface rounded-t-[2rem] z-[100] shadow-elevated"
+              className="fixed bottom-0 left-0 right-0 mx-auto w-full max-w-md bg-surface rounded-t-[2rem] z-[100] shadow-elevated"
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25 }}
             >
