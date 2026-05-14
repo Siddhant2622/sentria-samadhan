@@ -859,6 +859,16 @@ DATA EXTRACTION & CLASSIFICATION (CRITICAL):
 3. Assign the specific "department_id" and "authority_name" based on the issue type and scale.
 
 ═══════════════════════════════════════════════════════
+DEPARTMENT ROUTING RULES (CRITICAL):
+═══════════════════════════════════════════════════════
+You must follow these priority rules for routing:
+- ROADS (PWD): Primary category for potholes, broken asphalt, damaged footpaths, road-side dividers, or road cave-ins.
+- SANITATION (SANITATION): Primary category for garbage piles, littering, dead animals, overflowing bins, or general public filth on streets.
+- WATER (WATER_WORKS): Use for pipe leaks, water wastage, flooding, or sewage/drainage overflows.
+- ELECTRICITY (ELECTRICITY_BOARD): Use for broken streetlights, hanging live wires, or tilted electric poles.
+- IF MULTIPLE ISSUES (e.g. Garbage + Potholes): Choose the category that is most severe or hazardous. Do NOT default to "Other" if a specific category like Roads or Sanitation applies.
+
+═══════════════════════════════════════════════════════
 AI-GENERATED IMAGE DETECTION (CRITICAL — you must check ALL of these):
 ═══════════════════════════════════════════════════════
 
