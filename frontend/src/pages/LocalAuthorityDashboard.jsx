@@ -47,6 +47,7 @@ export default function LocalAuthorityDashboard() {
   const [progress, setProgress] = useState(50);
   const [statusText, setStatusText] = useState('In Progress');
   const [workNote, setWorkNote] = useState('');
+  const [newDueDate, setNewDueDate] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   // Notification State
@@ -148,13 +149,15 @@ export default function LocalAuthorityDashboard() {
         body: JSON.stringify({
           progress_percentage: progress,
           status: statusText,
-          work_update_text: workNote || `Marked as ${statusText}`
+          work_update_text: workNote || `Marked as ${statusText}`,
+          new_expected_date: newDueDate || undefined
         })
       });
       // Update local state
       setTasks(tasks.filter(t => progress === 100 ? t.id !== activeTask.id : true));
       setActiveTask(null);
       setWorkNote('');
+      setNewDueDate('');
     } catch (e) {
       console.error(e);
       alert('Failed to update progress.');
@@ -335,7 +338,12 @@ export default function LocalAuthorityDashboard() {
                 )}
                 
                 <button 
-                  onClick={() => { setActiveTask(task); setProgress(task.progress_percentage || 50); setStatusText(task.status === 'Pending' ? 'In Progress' : task.status); }}
+                  onClick={() => { 
+                    setActiveTask(task); 
+                    setProgress(task.progress_percentage || 50); 
+                    setStatusText(task.status === 'Pending' ? 'In Progress' : task.status); 
+                    setNewDueDate('');
+                  }}
                   className="w-full bg-surfaceLight hover:bg-primary/10 hover:text-primary text-textMain text-xs font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 border border-black/5"
                 >
                   Update Status <ChevronRight size={14} />
@@ -414,6 +422,20 @@ export default function LocalAuthorityDashboard() {
                 </div>
 
               <div className="space-y-5">
+                {activeTask.due_date_updated === 0 && (
+                  <div className="bg-primary/5 border border-primary/20 p-3 rounded-xl">
+                    <label className="text-xs font-bold mb-1.5 block text-primary">Expected Completion Date (One-time update)</label>
+                    <input 
+                      type="date" 
+                      value={newDueDate} 
+                      onChange={(e) => setNewDueDate(e.target.value)} 
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full bg-white border border-black/[0.06] rounded-xl p-2.5 text-sm focus:outline-none focus:border-primary" 
+                    />
+                    <p className="text-[9px] text-textMuted mt-1">Update this after your initial site visit to set realistic expectations.</p>
+                  </div>
+                )}
+                
                 <div>
                   <div className="flex justify-between text-xs mb-2 font-bold">
                     <span>Work Progress ({progress}%)</span>

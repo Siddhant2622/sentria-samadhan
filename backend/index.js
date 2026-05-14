@@ -14,13 +14,17 @@ const transporter = nodemailer.createTransport({
 });
 
 async function sendEmailNotification(to, subject, html) {
-  if (!to || !process.env.EMAIL_USER) {
-    console.log(`[Mock Email] To: ${to} | Subject: ${subject}`);
+  if (!to) {
+    console.log(`[Mock Email] No 'to' address | Subject: ${subject}`);
     return;
+  }
+  if (!process.env.EMAIL_USER) {
+    console.log(`[Mock Email] process.env.EMAIL_USER not set | To: ${to} | Subject: ${subject}`);
+    // We will still try to send it, but it might fail authentication if no user is set.
   }
   try {
     await transporter.sendMail({
-      from: `"Sentria Samadhan" <${process.env.EMAIL_USER}>`,
+      from: `"Sentria Samadhan" <${process.env.EMAIL_USER || 'sentria.samadhan@gmail.com'}>`,
       to,
       subject,
       html
@@ -1281,9 +1285,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // 7. Update Progress (Admin/Officer)
 app.put('/api/complaints/:id/progress', (req, res) => {
-    const { progress_percentage, status, work_update_text, media_url } = req.body;
+    const { progress_percentage, status, work_update_text, media_url, new_expected_date } = req.body;
     
-    db.get('SELECT work_updates FROM complaints WHERE id = ?', [req.params.id], (err, row) => {
+    db.get('SELECT work_updates, due_date_updated FROM complaints WHERE id = ?', [req.params.id], (err, row) => {
         if (err) return res.status(500).json({ error: err.message });
         if (!row) return res.status(404).json({ error: 'Complaint not found' });
         
@@ -1297,11 +1301,19 @@ app.put('/api/complaints/:id/progress', (req, res) => {
             media: media_url
         });
         
-        db.run('UPDATE complaints SET progress_percentage = ?, status = ?, work_updates = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-            [progress_percentage, status || 'In Progress', JSON.stringify(updates), req.params.id], function(err) {
-                if (err) return res.status(500).json({ error: err.message });
-                res.json({ success: true, message: 'Progress updated' });
-        });
+        if (new_expected_date && row.due_date_updated === 0) {
+            db.run('UPDATE complaints SET progress_percentage = ?, status = ?, work_updates = ?, expected_completion_date = ?, due_date_updated = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+                [progress_percentage, status || 'In Progress', JSON.stringify(updates), new_expected_date, req.params.id], function(err) {
+                    if (err) return res.status(500).json({ error: err.message });
+                    res.json({ success: true, message: 'Progress and due date updated' });
+            });
+        } else {
+            db.run('UPDATE complaints SET progress_percentage = ?, status = ?, work_updates = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+                [progress_percentage, status || 'In Progress', JSON.stringify(updates), req.params.id], function(err) {
+                    if (err) return res.status(500).json({ error: err.message });
+                    res.json({ success: true, message: 'Progress updated' });
+            });
+        }
     });
 });
 

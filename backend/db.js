@@ -66,6 +66,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 is_fake INTEGER DEFAULT 0,
                 fake_reason TEXT,
                 expected_completion_date DATETIME,
+                due_date_updated INTEGER DEFAULT 0,
                 actual_completion_date DATETIME,
                 delay_reason TEXT,
                 escalation_level TEXT DEFAULT 'None',
@@ -74,6 +75,11 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 FOREIGN KEY (citizen_id) REFERENCES users(id),
                 FOREIGN KEY (assigned_officer_id) REFERENCES users(id)
             )`);
+
+            // Migration: add due_date_updated column if not exists
+            db.run(`ALTER TABLE complaints ADD COLUMN due_date_updated INTEGER DEFAULT 0`, (err) => {
+                // Ignore error if column already exists
+            });
 
             db.run(`CREATE TABLE IF NOT EXISTS feedback (
                 id TEXT PRIMARY KEY,

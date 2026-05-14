@@ -121,7 +121,12 @@ export default function LiveTracking() {
           </button>
           <div className="min-w-0">
             <h1 className="font-bold text-lg truncate font-serif">Live Tracking</h1>
-            <p className="text-xs text-textMuted truncate">ID: #{complaint.id?.slice(0, 8)}</p>
+            <div className="flex flex-col gap-0.5">
+              <p className="text-xs text-textMuted truncate">ID: #{complaint.id?.slice(0, 8)}</p>
+              {complaint.created_at && (
+                <p className="text-[10px] text-textMuted">Filed on {new Date(complaint.created_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+              )}
+            </div>
           </div>
         </div>
         <button onClick={() => setShowEscalate(true)}
@@ -265,13 +270,23 @@ export default function LiveTracking() {
                 )}
               </div>
             </div>
-            <button 
-              onClick={() => complaint.assigned_officer_phone ? window.location.href = `tel:${complaint.assigned_officer_phone}` : alert('Phone number not available for this officer.')}
-              className="p-2 bg-primary/10 text-primary rounded-full transition-transform hover:scale-110 active:scale-95"
-              title={complaint.assigned_officer_phone || 'No phone number available'}
-            >
-              <Phone size={15} />
-            </button>
+            {complaint.assigned_officer_phone ? (
+              <a 
+                href={`tel:${complaint.assigned_officer_phone}`}
+                className="p-2 bg-primary/10 text-primary rounded-full transition-transform hover:scale-110 active:scale-95"
+                title={complaint.assigned_officer_phone}
+              >
+                <Phone size={15} />
+              </a>
+            ) : (
+              <button 
+                onClick={() => alert('Phone number not available for this officer.')}
+                className="p-2 bg-slate-100 text-slate-400 rounded-full"
+                title="No phone number available"
+              >
+                <Phone size={15} />
+              </button>
+            )}
           </div>
         </div>
 
