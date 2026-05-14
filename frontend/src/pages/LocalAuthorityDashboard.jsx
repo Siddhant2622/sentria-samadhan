@@ -190,8 +190,9 @@ export default function LocalAuthorityDashboard() {
         {activeTask && (
           <>
             <motion.div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[90]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => !submitting && setActiveTask(null)} />
-            <motion.div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-surface rounded-t-[2rem] z-[100] p-6 shadow-elevated"
-              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25 }}>
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-none">
+              <motion.div className="w-full max-w-md bg-surface rounded-3xl p-6 shadow-elevated pointer-events-auto max-h-[90vh] overflow-y-auto"
+                initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} transition={{ type: 'spring', damping: 25 }}>
               
                 <div className="flex justify-between items-start mb-2">
                   <div>
@@ -304,7 +305,8 @@ export default function LocalAuthorityDashboard() {
                 </div>
               </div>
 
-            </motion.div>
+              </motion.div>
+            </div>
           </>
         )}
       </AnimatePresence>
