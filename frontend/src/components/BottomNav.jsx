@@ -1,8 +1,9 @@
 import { NavLink, useLocation } from 'react-router-dom';
+import { memo } from 'react';
 import { Home, PlusCircle, Map, User, Globe, Shield, Truck, BarChart2, Users } from 'lucide-react';
 import { useLanguage } from '../lib/LanguageContext';
 
-export default function BottomNav() {
+function BottomNav() {
   const location = useLocation();
   const { t } = useLanguage();
   const path = location.pathname;
@@ -129,3 +130,5 @@ export default function BottomNav() {
   );
 }
 
+
+export default memo(BottomNav);

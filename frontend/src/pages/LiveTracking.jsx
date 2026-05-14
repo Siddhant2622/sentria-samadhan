@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, Truck, ShieldAlert, Phone, Flag, MapPin, ChevronUp, AlertTriangle, Clock, Info, Star, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -287,9 +287,10 @@ export default function LiveTracking() {
                 <motion.div
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.06 }}
+                  transition={{ delay: index * 0.03 }}
                   key={step.id}
                   className="flex mb-5 relative z-10"
+                  style={{ willChange: 'transform, opacity' }}
                 >
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center border-[3px] border-background z-10 shrink-0 mt-0.5 ${
                     isCompleted ? 'bg-primary text-white' :
@@ -333,9 +334,9 @@ export default function LiveTracking() {
         {showEscalate && (
           <>
             <motion.div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowEscalate(false)} />
-            <motion.div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-surface rounded-t-[2rem] border-t border-black/[0.06] z-40 p-6 shadow-elevated"
-              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 30 }}>
-              <div className="w-10 h-1 bg-black/10 rounded-full mx-auto mb-5" />
+            <div className="fixed inset-0 z-40 flex items-center justify-center p-4 pointer-events-none">
+              <motion.div className="w-full max-w-md bg-surface rounded-3xl pointer-events-auto p-6 shadow-elevated max-h-[90vh] overflow-y-auto"
+                initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} transition={{ type: 'spring', damping: 25 }}>
               <h3 className="font-bold text-lg mb-1 font-serif">Escalate Complaint</h3>
               <p className="text-textMuted text-sm mb-4">Send this complaint to a higher authority for urgent action.</p>
 
@@ -374,6 +375,7 @@ export default function LiveTracking() {
                 </>
               )}
             </motion.div>
+            </div>
           </>
         )}
       </AnimatePresence>

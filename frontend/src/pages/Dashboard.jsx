@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Clock, ArrowRight, ShieldCheck, Camera, Bell, Activity, Zap, LogOut, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -226,9 +226,9 @@ export default function Dashboard() {
           )}
           {complaints.slice(0, 5).map((item, index) => (
             <motion.button type="button" key={item.id}
-              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }}
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.04 }}
               onClick={() => navigate(`/track/${item.id}`)}
-              className="w-full text-left korean-card p-4">
+              className="w-full text-left korean-card p-4" style={{ willChange: 'transform, opacity' }}>
               <div className="flex justify-between items-start gap-3 mb-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${urgencyColor(item.urgency_level)}`}>{item.category || 'Civic'}</span>
@@ -278,8 +278,8 @@ export default function Dashboard() {
         {ratingTarget && (
           <>
             <motion.div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[90]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => !submittingRating && setRatingTarget(null)} />
-            <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }} className="fixed bottom-0 left-0 right-0 mx-auto w-full max-w-md bg-white rounded-t-[2.5rem] z-[100] p-8 shadow-elevated">
-              <div className="w-10 h-1 bg-black/10 rounded-full mx-auto mb-6" />
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-none">
+              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-md bg-white rounded-3xl pointer-events-auto p-8 shadow-elevated max-h-[90vh] overflow-y-auto">
               <h3 className="font-bold text-xl mb-1 font-serif text-slate-900">Rate Quality of Service</h3>
               <p className="text-textMuted text-sm mb-6">How was your experience with: <strong>{ratingTarget.title}</strong>?</p>
               
@@ -307,7 +307,8 @@ export default function Dashboard() {
                   {submittingRating ? <Activity size={18} className="animate-spin" /> : 'Submit Rating'}
                 </button>
               </div>
-            </motion.div>
+              </motion.div>
+            </div>
           </>
         )}
       </AnimatePresence>
@@ -321,11 +322,12 @@ export default function Dashboard() {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setShowNotifications(false)}
             />
-            <motion.div
-              className="fixed bottom-0 left-0 right-0 mx-auto w-full max-w-md bg-surface rounded-t-[2rem] z-[100] shadow-elevated"
-              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25 }}
-            >
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-none">
+              <motion.div
+                className="w-full max-w-md bg-surface rounded-3xl pointer-events-auto shadow-elevated max-h-[90vh] flex flex-col"
+                initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+                transition={{ type: 'spring', damping: 25 }}
+              >
               <div className="flex items-center justify-between p-6 pb-4 border-b border-black/[0.05]">
                 <div>
                   <h3 className="font-bold font-serif text-lg text-textMain">Notifications</h3>
@@ -335,7 +337,7 @@ export default function Dashboard() {
                   <Zap size={16} />
                 </button>
               </div>
-              <div className="overflow-y-auto max-h-[60vh] p-4 space-y-3 pb-8">
+              <div className="overflow-y-auto p-4 space-y-3 pb-8 flex-1">
                 {complaints.length === 0 ? (
                   <div className="text-center py-12 text-textMuted">
                     <Bell size={40} className="mx-auto mb-3 opacity-20" />
@@ -377,6 +379,7 @@ export default function Dashboard() {
                 })}
               </div>
             </motion.div>
+            </div>
           </>
         )}
       </AnimatePresence>
