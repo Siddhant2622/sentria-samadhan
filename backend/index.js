@@ -1102,6 +1102,30 @@ app.put('/api/complaints/:id/assign', (req, res) => {
         [officer_id, officer_name, 'Assigned', req.params.id],
         function(err) {
             if (err) return res.status(500).json({ error: err.message });
+
+            // Send email notification to the assigned officer
+            db.get('SELECT email FROM users WHERE id = ?', [officer_id], (err2, officer) => {
+                if (officer && officer.email) {
+                    db.get('SELECT title, description, address, latitude, longitude, urgency_level, category FROM complaints WHERE id = ?', [req.params.id], (err3, complaint) => {
+                        if (complaint) {
+                            sendEmailNotification(
+                                officer.email,
+                                'New Complaint Assigned: ' + (complaint.title || 'Civic Issue'),
+                                `<h3>Hello ${officer_name},</h3>
+                                 <p>A complaint has been assigned to you by the District Admin.</p>
+                                 <p><strong>Title:</strong> ${complaint.title}</p>
+                                 <p><strong>Description:</strong> ${complaint.description || 'N/A'}</p>
+                                 <p><strong>Category:</strong> ${complaint.category || 'General'}</p>
+                                 <p><strong>Location:</strong> ${complaint.address || 'Coordinates: ' + complaint.latitude + ', ' + complaint.longitude}</p>
+                                 <p><strong>Urgency:</strong> ${complaint.urgency_level || 'Medium'}</p>
+                                 <br/><p>Please log in to the Sentria Samadhan Field Officer Portal to take action.</p>
+                                 <p>Regards,<br/>Sentria Samadhan System</p>`
+                            );
+                        }
+                    });
+                }
+            });
+
             res.json({ success: true, message: 'Officer assigned successfully' });
         }
     );

@@ -1,10 +1,41 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { API_BASE } from '../lib/config';
 import { useNavigate } from 'react-router-dom';
-import { Shield, MapPin, Clock, CheckCircle, Camera, AlertTriangle, UserX, AlertCircle, X, ChevronRight, Truck, Activity } from 'lucide-react';
+import { Shield, MapPin, Clock, CheckCircle, Camera, AlertTriangle, UserX, AlertCircle, X, ChevronRight, Truck, Activity, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fetchComplaints, statusColor, urgencyColor } from '../lib/api';
+import { fetchComplaints, statusColor, urgencyColor, formatRelativeTime } from '../lib/api';
 import { useAuth } from '../lib/AuthContext';
+
+// Generate a notification chime using Web Audio API (no external file needed)
+function playNotificationSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // First tone
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(830, ctx.currentTime);
+    gain1.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(ctx.currentTime);
+    osc1.stop(ctx.currentTime + 0.3);
+    // Second tone (higher, delayed)
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(1100, ctx.currentTime + 0.15);
+    gain2.gain.setValueAtTime(0.3, ctx.currentTime + 0.15);
+    gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(ctx.currentTime + 0.15);
+    osc2.stop(ctx.currentTime + 0.5);
+  } catch (e) {
+    // Silently fail — audio may not be available
+  }
+}
 
 export default function LocalAuthorityDashboard() {
   const navigate = useNavigate();
@@ -18,12 +49,41 @@ export default function LocalAuthorityDashboard() {
   const [workNote, setWorkNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // Notification State
+  const [showNotifications, setShowNotifications] = useState(false);
+  const prevTaskIdsRef = useRef(new Set());
+  const [seenIds, setSeenIds] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('sentria_officer_notifs') || '[]')); }
+    catch { return new Set(); }
+  });
+  const hasInteracted = useRef(false);
+
+  // Track user interaction so we can play sound (browser requires gesture first)
+  useEffect(() => {
+    const handler = () => { hasInteracted.current = true; };
+    window.addEventListener('click', handler, { once: true });
+    window.addEventListener('touchstart', handler, { once: true });
+    return () => { window.removeEventListener('click', handler); window.removeEventListener('touchstart', handler); };
+  }, []);
+
   useEffect(() => {
     const refreshTasks = () => {
       if (!user?.id) return;
       const query = `?assigned_officer_id=${user.id}`;
       fetchComplaints(query).then(data => {
-        setTasks(data.filter(c => !/resolve|complete/i.test(c.status || '')));
+        const activeTasks = data.filter(c => !/resolve|complete/i.test(c.status || ''));
+        
+        // Detect NEW tasks that weren't in the previous set
+        const currentIds = new Set(activeTasks.map(t => t.id));
+        const prevIds = prevTaskIdsRef.current;
+        const newTasks = activeTasks.filter(t => !prevIds.has(t.id));
+        
+        if (newTasks.length > 0 && prevIds.size > 0 && hasInteracted.current) {
+          playNotificationSound();
+        }
+        
+        prevTaskIdsRef.current = currentIds;
+        setTasks(activeTasks);
       });
     };
 
@@ -111,7 +171,23 @@ export default function LocalAuthorityDashboard() {
               <p className="text-[10px] text-textMuted uppercase tracking-wider">My Assigned Tasks</p>
             </div>
           </div>
-          <button onClick={() => navigate('/dashboard')} className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-lg">Citizen View</button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setShowNotifications(true);
+                const ids = tasks.map(t => t.id);
+                localStorage.setItem('sentria_officer_notifs', JSON.stringify(ids));
+                setSeenIds(new Set(ids));
+              }}
+              className="relative p-2 text-textMuted hover:text-textMain transition-colors"
+            >
+              <Bell size={18} />
+              {tasks.filter(t => !seenIds.has(t.id)).length > 0 && (
+                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-danger rounded-full border-2 border-white animate-pulse" />
+              )}
+            </button>
+            <button onClick={() => navigate('/dashboard')} className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-lg">Citizen View</button>
+          </div>
         </div>
       </div>
 
@@ -308,6 +384,74 @@ export default function LocalAuthorityDashboard() {
               </motion.div>
             </div>
           </>
+        )}
+      </AnimatePresence>
+
+      {/* Notifications Panel — centered, 300px wide */}
+      <AnimatePresence>
+        {showNotifications && (
+          <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 pointer-events-none">
+            <motion.div
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-auto"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowNotifications(false)}
+            />
+            <motion.div
+              className="relative bg-surface rounded-3xl shadow-elevated pointer-events-auto flex flex-col"
+              style={{ width: 300, maxHeight: '80vh' }}
+              initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25 }}
+            >
+              <div className="flex items-center justify-between p-5 pb-3 border-b border-black/[0.05] shrink-0">
+                <div>
+                  <h3 className="font-bold font-serif text-base text-textMain">Notifications</h3>
+                  <p className="text-[10px] text-textMuted">{tasks.length} assigned task{tasks.length !== 1 ? 's' : ''}</p>
+                </div>
+                <button onClick={() => setShowNotifications(false)} className="p-1.5 rounded-full bg-surfaceLight text-textMuted hover:text-textMain transition-colors">
+                  <X size={14} />
+                </button>
+              </div>
+              <div className="overflow-y-auto p-3 space-y-2 pb-6 flex-1">
+                {tasks.length === 0 ? (
+                  <div className="text-center py-10 text-textMuted">
+                    <Bell size={32} className="mx-auto mb-2 opacity-20" />
+                    <p className="text-xs">No tasks assigned yet.</p>
+                  </div>
+                ) : tasks.map((t) => {
+                  const isNew = !seenIds.has(t.id);
+                  const icon = /emergency/i.test(t.urgency_level) ? '🔥' : /high/i.test(t.urgency_level) ? '⚠️' : '📋';
+                  return (
+                    <motion.div
+                      key={t.id}
+                      onClick={() => {
+                        setShowNotifications(false);
+                        setActiveTask(t);
+                        setProgress(t.progress_percentage || 50);
+                        setStatusText(t.status === 'Pending' ? 'In Progress' : t.status);
+                      }}
+                      className={`p-3 rounded-xl border cursor-pointer transition-all hover:shadow-md ${isNew ? 'bg-primary/5 border-primary/20' : 'bg-surfaceLight border-black/[0.05]'}`}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className="flex items-start gap-2">
+                        <span className="text-lg shrink-0">{icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <p className="text-[11px] font-bold text-textMain truncate">{t.title}</p>
+                            {isNew && <span className="shrink-0 px-1 py-0.5 bg-primary text-white text-[8px] font-bold rounded">NEW</span>}
+                          </div>
+                          <p className="text-[10px] text-textMuted truncate">{t.address || 'Location pending'}</p>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${urgencyColor(t.urgency_level)}`}>{t.urgency_level || 'Medium'}</span>
+                            <span className="text-[8px] text-textMuted">{formatRelativeTime(t.created_at)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>
