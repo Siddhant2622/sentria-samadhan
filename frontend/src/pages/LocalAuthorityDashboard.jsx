@@ -245,76 +245,11 @@ export default function LocalAuthorityDashboard() {
                 <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-danger rounded-full border-2 border-white animate-pulse" />
               )}
             </button>
-            <button onClick={() => navigate('/dashboard')} className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-lg">Citizen View</button>
           </div>
         </div>
       </div>
 
-      {/* Dynamic Address Search Bar */}
-      <div className="px-4 pt-3 pb-1">
-        <div className="flex gap-2 relative z-30">
-          <div className="relative flex-1">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-textMuted" />
-            <input
-              type="text"
-              value={addressQuery}
-              onChange={(e) => handleAddressSearch(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && addressQuery.trim()) {
-                  window.open(`https://www.google.com/maps/search/${encodeURIComponent(addressQuery)}`, '_blank');
-                  setAddressResults([]);
-                }
-              }}
-              placeholder="Search any address or landmark..."
-              className="w-full bg-surfaceLight border border-black/[0.06] rounded-xl pl-9 pr-10 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
-            />
-            {addressLoading && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-primary animate-spin" />}
-            {!addressLoading && addressQuery && (
-              <button onClick={() => { setAddressQuery(''); setAddressResults([]); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-textMuted hover:text-textMain">
-                <X size={14} />
-              </button>
-            )}
-          </div>
-          <button 
-            onClick={() => {
-              if (addressQuery.trim()) {
-                window.open(`https://www.google.com/maps/search/${encodeURIComponent(addressQuery)}`, '_blank');
-                setAddressResults([]);
-              }
-            }}
-            className="bg-primary text-white px-3 py-2.5 rounded-xl font-bold text-xs shadow-soft shrink-0 flex items-center"
-          >
-            Open Map
-          </button>
-        </div>
-        {/* Address Suggestions Dropdown */}
-        <AnimatePresence>
-          {addressResults.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
-              className="mt-1 bg-surface rounded-xl border border-black/[0.06] shadow-elevated overflow-hidden z-30 relative"
-            >
-              {addressResults.map((r, i) => (
-                <button
-                  key={i}
-                  onClick={() => {
-                    window.open(`https://www.google.com/maps?q=${r.lat},${r.lon}`, '_blank');
-                    setAddressQuery(r.shortName);
-                    setAddressResults([]);
-                  }}
-                  className="w-full text-left px-3 py-2.5 flex items-start gap-2 hover:bg-primary/5 transition-colors border-b border-black/[0.03] last:border-b-0"
-                >
-                  <Navigation size={12} className="text-primary shrink-0 mt-0.5" />
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-textMain truncate">{r.shortName}</p>
-                    <p className="text-[10px] text-textMuted truncate">{r.name}</p>
-                  </div>
-                </button>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+
 
       <div className="p-4 space-y-4">
         {sortedTasks.length === 0 ? (

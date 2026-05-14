@@ -39,6 +39,7 @@ export default function ReportIssue() {
   const [description, setDescription] = useState('');
   const [isTextReport, setIsTextReport] = useState(false);
   const [deptRatings, setDeptRatings] = useState({});
+  const [address, setAddress] = useState('');
 
   useEffect(() => {
     fetch(`${API_BASE}/api/superadmin/ratings`)
@@ -215,6 +216,7 @@ export default function ReportIssue() {
       urgency_level: analysis.urgency_level,
       latitude: location?.latitude,
       longitude: location?.longitude,
+      address: address,
       district: user?.district || 'Bhopal',
       media_urls: uploadedMediaUrl ? [uploadedMediaUrl] : [],
       image_hash: imageHash
@@ -335,6 +337,20 @@ export default function ReportIssue() {
                              Dept Rating: {deptRatings[analysis.department_id]?.avg || '5.0'} ({deptRatings[analysis.department_id]?.count || 0} reviews)
                           </div>
                           <p className="text-[10px] text-slate-400 italic">System mapped this issue to {CIVIC_CATEGORIES_LIST[analysis.category]?.authority_name}</p>
+                       </div>
+                    </div>
+                    <div>
+                       <label className="text-[10px] font-bold text-slate-400 uppercase block mb-2 mt-4">Location / Address</label>
+                       <div className="relative">
+                          <input 
+                            value={address} 
+                            onChange={e => setAddress(e.target.value)} 
+                            placeholder="Enter detailed address or landmark..."
+                            className="w-full bg-white border border-indigo-200 rounded-2xl p-4 text-sm text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all pr-12" 
+                          />
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                             <MapPin size={18} />
+                          </div>
                        </div>
                     </div>
                  </div>

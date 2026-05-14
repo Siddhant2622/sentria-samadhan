@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Shield, Plus, Globe, MapPin, Users, BarChart2, Bell, Home, Trash2, CheckCircle, AlertTriangle, TrendingUp, X, Loader2, Zap } from 'lucide-react';
+import { Shield, Plus, Globe, MapPin, Users, BarChart2, Bell, Home, Trash2, CheckCircle, AlertTriangle, TrendingUp, X, Loader2, Zap, LogOut } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatRelativeTime } from '../lib/api';
 
 import { API_BASE } from '../lib/config';
+import { useAuth } from '../lib/AuthContext';
 
 // All 52 districts of Madhya Pradesh
 const MP_DISTRICTS = [
@@ -23,6 +24,7 @@ const MP_DISTRICTS = [
 
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'regions');
   const [districtAdmins, setDistrictAdmins] = useState([]);
@@ -143,6 +145,13 @@ export default function SuperAdminDashboard() {
                <p className="text-[10px] text-indigo-200 uppercase tracking-widest font-bold">State Level Oversight</p>
              </div>
           </div>
+          <button
+            onClick={() => { logout(); navigate('/login'); }}
+            className="p-2 text-red-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
+            title="Logout"
+          >
+            <LogOut size={20} />
+          </button>
         </div>
 
         <div className="flex bg-black/20 p-1.5 rounded-2xl gap-2">

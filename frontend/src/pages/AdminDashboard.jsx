@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Shield, Filter, Search, Map as MapIcon, BarChart2, Bell, Clock, AlertTriangle, Home, Users, CheckCircle, Ban, Eye, TrendingUp, ChevronRight, Plus, Zap, X } from 'lucide-react';
+import { Shield, Filter, Search, Map as MapIcon, BarChart2, Bell, Clock, AlertTriangle, Home, Users, CheckCircle, Ban, Eye, TrendingUp, ChevronRight, Plus, Zap, X, LogOut } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchComplaints, formatRelativeTime, statusColor, urgencyColor, openInGoogleMaps } from '../lib/api';
 import { API_BASE } from '../lib/config';
+import { useAuth } from '../lib/AuthContext';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'board');
   const [complaints, setComplaints] = useState([]);
@@ -103,15 +105,24 @@ export default function AdminDashboard() {
               <p className="text-[10px] text-textMuted uppercase tracking-wider">Sentria Samadhan Command</p>
             </div>
           </div>
-          <button 
-            onClick={() => { setShowNotifications(true); const ids = complaints.map(c=>c.id); localStorage.setItem('sentria_admin_notifs', JSON.stringify(ids)); setSeenIds(new Set(ids)); }}
-            className="relative p-2 text-textMuted hover:text-textMain transition-colors"
-          >
-            <Bell size={18} />
-            {complaints.filter(c => !seenIds.has(c.id)).length > 0 && (
-              <span className="absolute top-1 right-1 w-2 h-2 bg-danger rounded-full border border-white" />
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => { setShowNotifications(true); const ids = complaints.map(c=>c.id); localStorage.setItem('sentria_admin_notifs', JSON.stringify(ids)); setSeenIds(new Set(ids)); }}
+              className="relative p-2 text-textMuted hover:text-textMain transition-colors"
+            >
+              <Bell size={18} />
+              {complaints.filter(c => !seenIds.has(c.id)).length > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-danger rounded-full border border-white" />
+              )}
+            </button>
+            <button
+              onClick={() => { logout(); navigate('/login'); }}
+              className="p-2 text-danger/80 hover:text-danger hover:bg-danger/10 rounded-xl transition-colors"
+              title="Logout"
+            >
+              <LogOut size={18} />
+            </button>
+          </div>
         </div>
 
         <div className="flex bg-surfaceLight p-1 rounded-xl gap-1">
