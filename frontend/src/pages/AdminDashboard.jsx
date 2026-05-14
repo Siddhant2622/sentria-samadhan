@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Shield, Filter, Search, Map as MapIcon, BarChart2, Bell, Clock, AlertTriangle, Home, Users, CheckCircle, Ban, Eye, TrendingUp, ChevronRight, Plus, Zap } from 'lucide-react';
+import { Shield, Filter, Search, Map as MapIcon, BarChart2, Bell, Clock, AlertTriangle, Home, Users, CheckCircle, Ban, Eye, TrendingUp, ChevronRight, Plus, Zap, X } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchComplaints, formatRelativeTime, statusColor, urgencyColor, openInGoogleMaps } from '../lib/api';
@@ -25,6 +25,11 @@ export default function AdminDashboard() {
   const [newAuthority, setNewAuthority] = useState({ name: '', department: '', email: '' });
   const [assigningTo, setAssigningTo] = useState(null);
   const [officerRatings, setOfficerRatings] = useState({});
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [seenIds, setSeenIds] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('sentria_admin_notifs') || '[]')); }
+    catch { return new Set(); }
+  });
 
   const fetchOfficers = async () => {
     try {
@@ -98,9 +103,14 @@ export default function AdminDashboard() {
               <p className="text-[10px] text-textMuted uppercase tracking-wider">Sentria Samadhan Command</p>
             </div>
           </div>
-          <button className="relative p-2 text-textMuted hover:text-textMain transition-colors">
+          <button 
+            onClick={() => { setShowNotifications(true); const ids = complaints.map(c=>c.id); localStorage.setItem('sentria_admin_notifs', JSON.stringify(ids)); setSeenIds(new Set(ids)); }}
+            className="relative p-2 text-textMuted hover:text-textMain transition-colors"
+          >
             <Bell size={18} />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-danger rounded-full border border-white" />
+            {complaints.filter(c => !seenIds.has(c.id)).length > 0 && (
+              <span className="absolute top-1 right-1 w-2 h-2 bg-danger rounded-full border border-white" />
+            )}
           </button>
         </div>
 
@@ -439,6 +449,70 @@ export default function AdminDashboard() {
                 ))}
               </div>
               <button onClick={() => setAssigningTo(null)} className="w-full bg-slate-100 py-4 rounded-2xl text-sm font-bold">Cancel</button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Notifications Panel */}
+      <AnimatePresence>
+        {showNotifications && (
+          <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 pointer-events-none">
+            <motion.div
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-auto"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setShowNotifications(false)}
+            />
+            <motion.div
+              className="relative w-full max-w-md bg-surface rounded-3xl z-[100] shadow-elevated pointer-events-auto max-h-[90vh] flex flex-col"
+              initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25 }}
+            >
+              <div className="flex items-center justify-between p-6 pb-4 border-b border-black/[0.05] shrink-0">
+                <div>
+                  <h3 className="font-bold font-serif text-lg text-textMain">Recent Cases</h3>
+                  <p className="text-xs text-textMuted">{complaints.length} complaint{complaints.length !== 1 ? 's' : ''}</p>
+                </div>
+                <button onClick={() => setShowNotifications(false)} className="p-2 rounded-full bg-surfaceLight text-textMuted hover:text-textMain transition-colors">
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="overflow-y-auto p-4 space-y-3 pb-8 flex-1">
+                {complaints.length === 0 ? (
+                  <div className="text-center py-12 text-textMuted">
+                    <Bell size={40} className="mx-auto mb-3 opacity-20" />
+                    <p className="text-sm">No recent activity.</p>
+                  </div>
+                ) : complaints.slice(0, 15).map((c) => {
+                  const isNew = !seenIds.has(c.id);
+                  const isFake = c.is_fake;
+                  const icon = isFake ? '🚨' : /emergency/i.test(c.urgency_level) ? '🔥' : '📋';
+                  const statusMsg = isFake ? 'Flagged as potential fraud' : `Current status: ${c.status || 'Pending'}`;
+                  return (
+                    <motion.div
+                      key={c.id}
+                      onClick={() => { setShowNotifications(false); navigate(`/track/${c.id}`); }}
+                      className={`p-4 rounded-2xl border cursor-pointer transition-all hover:shadow-md ${isNew ? 'bg-primary/5 border-primary/20' : 'bg-surfaceLight border-black/[0.05]'}`}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl shrink-0">{icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="text-xs font-bold text-textMain truncate">{c.title}</p>
+                            {isNew && <span className="shrink-0 px-1.5 py-0.5 bg-primary text-white text-[9px] font-bold rounded-md">NEW</span>}
+                          </div>
+                          <p className="text-[11px] text-textMuted leading-relaxed">{statusMsg}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${statusColor(c.status)}`}>{c.status}</span>
+                            <span className="text-[9px] text-textMuted">{formatRelativeTime(c.created_at)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
             </motion.div>
           </div>
         )}
