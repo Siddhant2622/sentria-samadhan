@@ -6,11 +6,12 @@ services:
     rootDir: backend
     buildCommand: npm install --build-from-source
     startCommand: npm start
+    autoDeploy: true
     envVars:
       - key: PORT
         value: 3001
       - key: GEMINI_API_KEY
-        sync: false 
+        sync: false
 
   # ── FRONTEND (Vite PWA) ──
   - type: web
@@ -19,6 +20,7 @@ services:
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
+    autoDeploy: true
     routes:
       - type: rewrite
         source: /*
