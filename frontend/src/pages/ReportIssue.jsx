@@ -302,8 +302,12 @@ export default function ReportIssue() {
                  <h3 className="text-xs font-bold text-primary uppercase tracking-widest mb-4 flex items-center gap-2"><Sparkles size={14} /> System Initial Assessment</h3>
                  <div className="space-y-4">
                     <div>
-                       <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Detected Issue</label>
-                       <input value={analysis.title} onChange={e => setAnalysis({...analysis, title: e.target.value})} className="w-full bg-transparent border-none p-0 text-lg font-bold focus:ring-0" />
+                       <label className="text-[10px] font-bold text-slate-500 uppercase block mb-2">Detected Issue</label>
+                       <input 
+                         value={analysis.title} 
+                         onChange={e => setAnalysis({...analysis, title: e.target.value})} 
+                         className="w-full bg-white border border-indigo-200 rounded-2xl p-4 text-lg font-bold text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" 
+                       />
                     </div>
                     <div>
                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Target Department (System Detected)</label>
