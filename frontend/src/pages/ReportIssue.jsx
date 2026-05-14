@@ -139,8 +139,8 @@ export default function ReportIssue() {
         setStep(3);
       } else {
         const errMsg = response.status === 429 
-          ? 'AI is temporarily busy. Please wait 60 seconds and try again.'
-          : (data.error || 'AI Analysis failed.');
+          ? 'System is temporarily busy. Please wait 60 seconds and try again.'
+          : (data.error || 'System Analysis failed.');
         setUploadError(errMsg);
         setStep(1);
       }
@@ -244,7 +244,7 @@ export default function ReportIssue() {
           </button>
           <div className="mb-10">
             <h1 className="text-3xl font-bold font-serif mb-2 tracking-tight">Report Civic Issue</h1>
-            <p className="text-slate-500 text-sm leading-relaxed">Our AI will automatically analyze your photo and route it to the correct department.</p>
+            <p className="text-slate-500 text-sm leading-relaxed">Our System will automatically analyze your photo and route it to the correct department.</p>
           </div>
           {uploadError && <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-sm"><AlertTriangle size={18} /> {uploadError}</div>}
           <div className="grid grid-cols-1 gap-4 flex-1">
@@ -284,7 +284,7 @@ export default function ReportIssue() {
               </div>
            </div>
            <h2 className="text-2xl font-bold font-serif mb-3">Analyzing Evidence...</h2>
-           <p className="text-slate-500 text-sm leading-relaxed max-w-xs">Sentria AI is scanning your photo to determine the category, department, and priority level.</p>
+           <p className="text-slate-500 text-sm leading-relaxed max-w-xs">Sentria System is scanning your photo to determine the category, department, and priority level.</p>
         </div>
       )}
 
@@ -299,14 +299,14 @@ export default function ReportIssue() {
               {previewUrl && <div className="rounded-[2.5rem] overflow-hidden shadow-lg aspect-video"><img src={previewUrl} className="w-full h-full object-cover" /></div>}
               
               <div className="bg-indigo-50/50 p-6 rounded-[2.5rem] border border-indigo-100">
-                 <h3 className="text-xs font-bold text-primary uppercase tracking-widest mb-4 flex items-center gap-2"><Sparkles size={14} /> AI Initial Assessment</h3>
+                 <h3 className="text-xs font-bold text-primary uppercase tracking-widest mb-4 flex items-center gap-2"><Sparkles size={14} /> System Initial Assessment</h3>
                  <div className="space-y-4">
                     <div>
                        <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Detected Issue</label>
                        <input value={analysis.title} onChange={e => setAnalysis({...analysis, title: e.target.value})} className="w-full bg-transparent border-none p-0 text-lg font-bold focus:ring-0" />
                     </div>
                     <div>
-                       <label className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Target Department (AI Detected)</label>
+                       <label className="text-[10px] font-bold text-slate-400 uppercase block mb-2">Target Department (System Detected)</label>
                        <div className="relative">
                           <select 
                             value={analysis.category} 
@@ -330,7 +330,7 @@ export default function ReportIssue() {
                              <Zap size={10} fill="currentColor" />
                              Dept Rating: {deptRatings[analysis.department_id]?.avg || '5.0'} ({deptRatings[analysis.department_id]?.count || 0} reviews)
                           </div>
-                          <p className="text-[10px] text-slate-400 italic">AI mapped this issue to {CIVIC_CATEGORIES_LIST[analysis.category]?.authority_name}</p>
+                          <p className="text-[10px] text-slate-400 italic">System mapped this issue to {CIVIC_CATEGORIES_LIST[analysis.category]?.authority_name}</p>
                        </div>
                     </div>
                  </div>

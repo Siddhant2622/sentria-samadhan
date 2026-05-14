@@ -432,7 +432,7 @@ app.post('/api/text-report', async (req, res) => {
     }
 
     if(!ai) {
-        return res.status(503).json({ success: false, error: 'AI not configured.' });
+        return res.status(503).json({ success: false, error: 'System not configured.' });
     }
 
     try {
@@ -472,7 +472,7 @@ Respond ONLY with a JSON object:
         const isQuota = (error.message || '').includes('429') || (error.message || '').includes('quota');
         res.status(isQuota ? 429 : 500).json({ 
           success: false, 
-          error: isQuota ? 'AI is temporarily busy. Please try again in 60 seconds.' : 'AI Analysis failed' 
+          error: isQuota ? 'System is temporarily busy. Please try again in 60 seconds.' : 'System Analysis failed' 
         });
     }
 });
@@ -728,7 +728,7 @@ app.post('/api/complaints/analyze', upload.single('image'), handleUploadError, a
       return res.status(422).json({
         success: false,
         code: 'AI_GENERATED_IMAGE',
-        error: `This image appears to be AI-generated${toolName}. Only real photographs of civic issues are accepted.`,
+        error: `This image appears to be computer-generated${toolName}. Only real photographs of civic issues are accepted.`,
         detection: {
           confidence: Math.round(aiDetection.ai_confidence * 100),
           signals: aiDetection.signals_detected,
@@ -911,9 +911,9 @@ Return ONLY valid JSON with these exact keys:
       console.error("Gemini API Error:", error.message?.substring(0, 200));
       const isQuota = (error.message || '').includes('429') || (error.message || '').includes('quota');
       if (isQuota) {
-        res.status(429).json({ success: false, code: 'AI_RATE_LIMITED', error: 'AI is temporarily busy. Please wait 60 seconds and try again.' });
+        res.status(429).json({ success: false, code: 'SYSTEM_RATE_LIMITED', error: 'System is temporarily busy. Please wait 60 seconds and try again.' });
       } else {
-        res.status(500).json({ success: false, code: 'AI_ANALYSIS_FAILED', error: 'Failed to analyze image with AI', details: error.message });
+        res.status(500).json({ success: false, code: 'SYSTEM_ANALYSIS_FAILED', error: 'Failed to analyze image with System', details: error.message });
       }
     }
 });
@@ -923,7 +923,7 @@ app.post('/api/chat/assistant', async (req, res) => {
     const { history, complaintContext } = req.body;
     
     if(!ai) {
-        return res.status(503).json({ success: false, error: 'AI not configured.' });
+        return res.status(503).json({ success: false, error: 'System not configured.' });
     }
 
     try {
@@ -1179,7 +1179,7 @@ app.post('/api/chat/assistant', async (req, res) => {
       res.json({ reply: response.text });
     } catch (error) {
       console.error("Chat Error:", error);
-      res.status(500).json({ error: 'Chat AI failed' });
+      res.status(500).json({ error: 'Chat System failed' });
     }
 });
 

@@ -11,7 +11,7 @@ export default defineConfig({
       manifest: {
         name: 'Sentria Samadhan',
         short_name: 'Sentria Samadhan',
-        description: 'Smart AI-powered citizen grievance reporting system',
+        description: 'Smart System-powered citizen grievance reporting system',
         theme_color: '#064e3b',
         background_color: '#064e3b',
         display: 'standalone',
