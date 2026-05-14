@@ -626,19 +626,20 @@ app.post('/api/auth/firebase-login', verifyFirebaseToken, (req, res) => {
     );
   });
 });
-+
-+// Update FCM Token
-+app.post('/api/auth/update-fcm-token', verifyFirebaseToken, (req, res) => {
-+  const { fcm_token } = req.body;
-+  const firebaseUid = req.firebaseUid;
-+
-+  if (!fcm_token) return res.status(400).json({ error: 'FCM token is required.' });
-+
-+  db.run('UPDATE users SET fcm_token = ? WHERE id = ?', [fcm_token, firebaseUid], function(err) {
-+    if (err) return res.status(500).json({ error: err.message });
-+    res.json({ success: true, message: 'FCM token updated successfully.' });
-+  });
-+});
+
+
+// Update FCM Token
+app.post('/api/auth/update-fcm-token', verifyFirebaseToken, (req, res) => {
+  const { fcm_token } = req.body;
+  const firebaseUid = req.firebaseUid;
+
+  if (!fcm_token) return res.status(400).json({ error: 'FCM token is required.' });
+
+  db.run('UPDATE users SET fcm_token = ? WHERE id = ?', [fcm_token, firebaseUid], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true, message: 'FCM token updated successfully.' });
+  });
+});
 
 // 2. Demo Login (Bypass Firebase for testing/hackathon presentations)
 app.post('/api/auth/demo-login', (req, res) => {
