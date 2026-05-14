@@ -14,6 +14,7 @@ export default function Login() {
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(0); // Cooldown timer in seconds
 
   const { loginWithGoogle, sendOtp, verifyOtp, demoLogin, updateUserName, isFirebaseConfigured } = useAuth();
   const navigate = useNavigate();
@@ -64,6 +65,17 @@ export default function Login() {
         setError('Firebase billing is not enabled. Using Mock OTP mode for demo. Use code 123456.');
       }
       setView('otp');
+      // Start 60-second cooldown
+      setCooldown(60);
+      const timer = setInterval(() => {
+        setCooldown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     } else setError(result.error);
   };
 
@@ -235,7 +247,11 @@ export default function Login() {
                 </form>
                 <p className="text-center text-xs text-textMuted mt-4">
                   Didn't receive OTP?{' '}
-                  <button onClick={() => { setView('phone'); setOtp(''); setError(''); }} className="text-primary font-medium">Resend</button>
+                  {cooldown > 0 ? (
+                    <span className="text-primary font-medium opacity-50">Resend in {cooldown}s</span>
+                  ) : (
+                    <button onClick={() => { setView('phone'); setOtp(''); setError(''); }} className="text-primary font-medium">Resend</button>
+                  )}
                 </p>
               </motion.div>
             )}

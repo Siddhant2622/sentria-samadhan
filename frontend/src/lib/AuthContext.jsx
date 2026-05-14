@@ -231,6 +231,10 @@ export function AuthProvider({ children }) {
       let msg = e.message || 'Failed to send OTP.';
       if (e.code === 'auth/unauthorized-domain') {
         msg = 'Domain not authorized. Add your current URL to Firebase Console > Authentication > Settings > Authorized Domains.';
+      } else if (e.code === 'auth/invalid-phone-number') {
+        msg = 'The phone number is invalid. Please enter a valid 10-digit mobile number.';
+      } else if (e.code === 'auth/network-request-failed') {
+        msg = 'Network issue. Please check your internet connection.';
       }
       setError(msg);
       return { success: false, error: msg };
@@ -287,9 +291,12 @@ export function AuthProvider({ children }) {
 
       return { success: true, needsName: !hasName && !dbHasName };
     } catch (e) {
-      const msg = e.code === 'auth/invalid-verification-code'
-        ? 'Invalid OTP. Please try again.'
-        : e.message || 'OTP verification failed.';
+      let msg = 'OTP verification failed.';
+      if (e.code === 'auth/invalid-verification-code') msg = 'Wrong OTP. Please check the code and try again.';
+      else if (e.code === 'auth/code-expired') msg = 'OTP has expired. Please request a new one.';
+      else if (e.code === 'auth/network-request-failed') msg = 'Network issue. Please check your internet connection.';
+      else if (e.message) msg = e.message;
+      
       setError(msg);
       return { success: false, error: msg };
     }
