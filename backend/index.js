@@ -3,6 +3,33 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER || 'sentria.samadhan@gmail.com',
+    pass: process.env.EMAIL_PASS || 'dummy_password'
+  }
+});
+
+async function sendEmailNotification(to, subject, html) {
+  if (!to || !process.env.EMAIL_USER) {
+    console.log(`[Mock Email] To: ${to} | Subject: ${subject}`);
+    return;
+  }
+  try {
+    await transporter.sendMail({
+      from: `"Sentria Samadhan" <${process.env.EMAIL_USER}>`,
+      to,
+      subject,
+      html
+    });
+    console.log(`Email sent to ${to}`);
+  } catch (error) {
+    console.error('Failed to send email:', error);
+  }
+}
 const db = require('./db');
 const path = require('path');
 const fs = require('fs');
@@ -968,7 +995,7 @@ app.post('/api/complaints', (req, res) => {
     // AI Auto-Assignment: Find an officer in the same district and department
     // If multiple exist, we pick the one with the fewest active tasks for load balancing
     const findOfficerQuery = `
-      SELECT u.id, u.name, COUNT(c.id) as task_count 
+      SELECT u.id, u.name, u.email, COUNT(c.id) as task_count 
       FROM users u
       LEFT JOIN complaints c ON u.id = c.assigned_officer_id AND c.status NOT IN ('Resolved', 'Completed')
       WHERE u.role = 'Officer' AND (u.district = ? OR u.district = 'All Districts') AND u.department = ?
@@ -998,6 +1025,39 @@ app.post('/api/complaints', (req, res) => {
                 console.error(err);
                 return res.status(500).json({ error: err.message });
             }
+            
+            db.get('SELECT email, name FROM users WHERE id = ?', [citizen_id], (err, citizen) => {
+                const citizenEmail = citizen?.email;
+                const citizenName = citizen?.name || 'Citizen';
+                const officerEmail = officer?.email;
+                
+                if (citizenEmail) {
+                    sendEmailNotification(
+                        citizenEmail,
+                        'Complaint Registered Successfully - Sentria Samadhan',
+                        `<h3>Dear ${citizenName},</h3>
+                         <p>Your complaint regarding <b>${title}</b> has been successfully registered.</p>
+                         <p><strong>Complaint ID:</strong> ${id}</p>
+                         <p><strong>Category:</strong> ${category}</p>
+                         <p>We will keep you updated on its progress.</p>
+                         <br/><p>Regards,<br/>Sentria Samadhan Team</p>`
+                    );
+                }
+
+                if (officerEmail) {
+                    sendEmailNotification(
+                        officerEmail,
+                        'New Complaint Assigned: ' + title,
+                        `<h3>Hello Officer ${assigned_name},</h3>
+                         <p>A new complaint has been assigned to you.</p>
+                         <p><strong>Nature of Complaint:</strong> ${title} - ${description}</p>
+                         <p><strong>Geographical Location:</strong> ${address || 'Coordinates: ' + latitude + ', ' + longitude}</p>
+                         <p><strong>Urgency:</strong> ${urgency_level || 'Medium'}</p>
+                         <br/><p>Please log in to the Sentria Samadhan portal to take action.</p>`
+                    );
+                }
+            });
+
             res.json({ success: true, complaint_id: id, message: 'Complaint registered successfully.', is_fake, assigned_to: assigned_name });
         });
     });
@@ -1221,6 +1281,22 @@ app.post('/api/complaints/:id/escalate', (req, res) => {
             
             db.run('INSERT INTO escalations (id, complaint_id, action_taken, notes, escalation_level) VALUES (?, ?, ?, ?, ?)',
                 [uuidv4(), req.params.id, 'Citizen Escalated', reason, target_level || 'Senior Officer'], function(err) {
+                    db.get('SELECT title, district FROM complaints WHERE id = ?', [req.params.id], (err, complaint) => {
+                        if (complaint) {
+                           db.get('SELECT email FROM users WHERE role IN ("Admin", "SuperAdmin") AND (district = ? OR district = "All Districts") LIMIT 1', [complaint.district], (err, supervisor) => {
+                               if (supervisor && supervisor.email) {
+                                   sendEmailNotification(
+                                       supervisor.email,
+                                       'Action Required: Complaint Escalated - ' + complaint.title,
+                                       `<h3>Supervisor Notification</h3>
+                                        <p>Complaint <b>${req.params.id}</b> has been escalated to <b>${target_level || 'Senior Officer'}</b>.</p>
+                                        <p><strong>Reason for Escalation:</strong> ${reason}</p>
+                                        <p>Please review immediately and take appropriate action.</p>`
+                                   );
+                               }
+                           });
+                        }
+                    });
                     res.json({ success: true, message: 'Complaint escalated successfully.' });
                 });
         });
