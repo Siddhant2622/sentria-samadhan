@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { API_BASE } from '../lib/config';
 import { useNavigate } from 'react-router-dom';
-import { Shield, MapPin, Clock, CheckCircle, Camera, AlertTriangle, UserX, AlertCircle, X, ChevronRight, Truck, Activity, Bell } from 'lucide-react';
+import { Shield, MapPin, Clock, CheckCircle, Camera, AlertTriangle, UserX, AlertCircle, X, ChevronRight, Truck, Activity, Bell, Search, Navigation, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchComplaints, statusColor, urgencyColor, formatRelativeTime } from '../lib/api';
 import { useAuth } from '../lib/AuthContext';
@@ -102,6 +102,42 @@ export default function LocalAuthorityDashboard() {
     });
   }, [tasks]);
 
+  // ─── Address Search State ────────────────────────────────
+  const [addressQuery, setAddressQuery] = useState('');
+  const [addressResults, setAddressResults] = useState([]);
+  const [addressLoading, setAddressLoading] = useState(false);
+  const searchTimerRef = useRef(null);
+
+  const handleAddressSearch = useCallback((query) => {
+    setAddressQuery(query);
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    if (query.trim().length < 3) {
+      setAddressResults([]);
+      return;
+    }
+    setAddressLoading(true);
+    searchTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=in&limit=6&addressdetails=1`
+        );
+        const data = await res.json();
+        setAddressResults(data.map(r => ({
+          name: r.display_name,
+          lat: parseFloat(r.lat),
+          lon: parseFloat(r.lon),
+          type: r.type,
+          shortName: [r.address?.road, r.address?.suburb, r.address?.city || r.address?.town || r.address?.state_district].filter(Boolean).join(', ') || r.display_name.split(',').slice(0, 3).join(',')
+        })));
+      } catch (e) {
+        console.error('Address search failed:', e);
+        setAddressResults([]);
+      } finally {
+        setAddressLoading(false);
+      }
+    }, 400);
+  }, []);
+
   const handleUpdateProgress = async () => {
     if (!activeTask) return;
     setSubmitting(true);
@@ -191,6 +227,53 @@ export default function LocalAuthorityDashboard() {
         </div>
       </div>
 
+      {/* Dynamic Address Search Bar */}
+      <div className="px-4 pt-3 pb-1">
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-textMuted" />
+          <input
+            type="text"
+            value={addressQuery}
+            onChange={(e) => handleAddressSearch(e.target.value)}
+            placeholder="Search any address or landmark..."
+            className="w-full bg-surfaceLight border border-black/[0.06] rounded-xl pl-9 pr-10 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+          />
+          {addressLoading && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-primary animate-spin" />}
+          {!addressLoading && addressQuery && (
+            <button onClick={() => { setAddressQuery(''); setAddressResults([]); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-textMuted hover:text-textMain">
+              <X size={14} />
+            </button>
+          )}
+        </div>
+        {/* Address Suggestions Dropdown */}
+        <AnimatePresence>
+          {addressResults.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+              className="mt-1 bg-surface rounded-xl border border-black/[0.06] shadow-elevated overflow-hidden z-30 relative"
+            >
+              {addressResults.map((r, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    window.open(`https://www.google.com/maps?q=${r.lat},${r.lon}`, '_blank');
+                    setAddressQuery(r.shortName);
+                    setAddressResults([]);
+                  }}
+                  className="w-full text-left px-3 py-2.5 flex items-start gap-2 hover:bg-primary/5 transition-colors border-b border-black/[0.03] last:border-b-0"
+                >
+                  <Navigation size={12} className="text-primary shrink-0 mt-0.5" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-textMain truncate">{r.shortName}</p>
+                    <p className="text-[10px] text-textMuted truncate">{r.name}</p>
+                  </div>
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
       <div className="p-4 space-y-4">
         {sortedTasks.length === 0 ? (
           <div className="text-center py-10 text-textMuted text-sm">
@@ -225,20 +308,22 @@ export default function LocalAuthorityDashboard() {
                         href={`https://www.google.com/maps?q=${task.latitude},${task.longitude}`} 
                         target="_blank" 
                         rel="noreferrer"
-                        className="flex-1 bg-primary/10 text-primary text-[10px] font-bold py-1.5 rounded-lg text-center hover:bg-primary/20 transition-colors"
+                        className="flex-1 bg-primary/10 text-primary text-[10px] font-bold py-1.5 rounded-lg text-center hover:bg-primary/20 transition-colors flex items-center justify-center gap-1"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        GPS Tracking
+                        <Navigation size={10} /> GPS Navigate
                       </a>
-                      <a 
-                        href={`https://www.google.com/maps/search/${encodeURIComponent(task.address)}`} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="flex-1 bg-surfaceLight text-textMuted text-[10px] font-bold py-1.5 rounded-lg text-center hover:bg-black/5 transition-colors"
-                        onClick={(e) => e.stopPropagation()}
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAddressQuery(task.address || '');
+                          handleAddressSearch(task.address || '');
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="flex-1 bg-surfaceLight text-textMuted text-[10px] font-bold py-1.5 rounded-lg text-center hover:bg-black/5 transition-colors flex items-center justify-center gap-1"
                       >
-                        Search Address
-                      </a>
+                        <Search size={10} /> Search Nearby
+                      </button>
                     </div>
                   )}
                 </div>
