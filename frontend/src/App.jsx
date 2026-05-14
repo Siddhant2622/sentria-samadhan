@@ -1,17 +1,19 @@
+import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import Dashboard from './pages/Dashboard';
-import ReportIssue from './pages/ReportIssue';
-import LiveTracking from './pages/LiveTracking';
-import AdminDashboard from './pages/AdminDashboard';
-import LocalAuthorityDashboard from './pages/LocalAuthorityDashboard';
-import SuperAdminDashboard from './pages/SuperAdminDashboard';
-import MapPage from './pages/MapPage';
-import ProfilePage from './pages/ProfilePage';
-import Feedback from './pages/Feedback';
-import PublicFeed from './pages/PublicFeed';
-import Login from './pages/Login';
 import BottomNav from './components/BottomNav';
 import { useAuth } from './lib/AuthContext';
+
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const ReportIssue = lazy(() => import('./pages/ReportIssue'));
+const LiveTracking = lazy(() => import('./pages/LiveTracking'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const LocalAuthorityDashboard = lazy(() => import('./pages/LocalAuthorityDashboard'));
+const SuperAdminDashboard = lazy(() => import('./pages/SuperAdminDashboard'));
+const MapPage = lazy(() => import('./pages/MapPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const Feedback = lazy(() => import('./pages/Feedback'));
+const PublicFeed = lazy(() => import('./pages/PublicFeed'));
+const Login = lazy(() => import('./pages/Login'));
 
 // Full-screen branded splash shown while checking auth state
 function SplashScreen() {
@@ -100,18 +102,18 @@ function AppShell() {
     <div className="flex flex-col min-h-screen bg-background text-textMain max-w-md mx-auto relative overflow-hidden shadow-2xl border-x border-black/5">
       <div className={`flex-1 overflow-y-auto no-scrollbar ${!hideNav ? 'pb-20' : ''}`}>
         <Routes>
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={<Suspense fallback={<SplashScreen />}><Login /></Suspense>} />
           <Route path="/" element={<RootRedirect />} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/report" element={<ProtectedRoute><ReportIssue /></ProtectedRoute>} />
-          <Route path="/track/:id" element={<ProtectedRoute><LiveTracking /></ProtectedRoute>} />
-          <Route path="/map" element={<ProtectedRoute><MapPage /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-          <Route path="/feed" element={<ProtectedRoute><PublicFeed /></ProtectedRoute>} />
-          <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-          <Route path="/officer" element={<ProtectedRoute><LocalAuthorityDashboard /></ProtectedRoute>} />
-          <Route path="/superadmin" element={<ProtectedRoute><SuperAdminDashboard /></ProtectedRoute>} />
-          <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><Dashboard /></Suspense></ProtectedRoute>} />
+          <Route path="/report" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><ReportIssue /></Suspense></ProtectedRoute>} />
+          <Route path="/track/:id" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><LiveTracking /></Suspense></ProtectedRoute>} />
+          <Route path="/map" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><MapPage /></Suspense></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><ProfilePage /></Suspense></ProtectedRoute>} />
+          <Route path="/feed" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><PublicFeed /></Suspense></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><AdminDashboard /></Suspense></ProtectedRoute>} />
+          <Route path="/officer" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><LocalAuthorityDashboard /></Suspense></ProtectedRoute>} />
+          <Route path="/superadmin" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><SuperAdminDashboard /></Suspense></ProtectedRoute>} />
+          <Route path="/feedback" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><Feedback /></Suspense></ProtectedRoute>} />
         </Routes>
       </div>
       {!hideNav && <BottomNav />}
