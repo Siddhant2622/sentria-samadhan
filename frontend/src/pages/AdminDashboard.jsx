@@ -319,9 +319,8 @@ export default function AdminDashboard() {
 
       {/* Add Authority Modal */}
       {showAddAuthority && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[90] flex items-end justify-center">
-          <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="w-full max-w-md bg-white rounded-t-[2rem] z-[100] p-8 shadow-elevated">
-            <div className="w-10 h-1 bg-black/10 rounded-full mx-auto mb-6" />
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[90] flex items-center justify-center p-4">
+          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-full max-w-md bg-white rounded-3xl z-[100] p-8 shadow-elevated max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-xl mb-1 font-serif text-slate-900">{editingOfficer ? 'Edit Local Authority' : 'Provision Local Authority'}</h3>
             <p className="text-textMuted text-sm mb-6">{editingOfficer ? 'Update credentials for this field officer.' : 'Create credentials for a new field officer in your district.'}</p>
             <div className="space-y-4">
@@ -377,9 +376,8 @@ export default function AdminDashboard() {
 
       {/* Ban Modal */}
       {selectedUser && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end justify-center">
-          <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="w-full max-w-md bg-surface rounded-t-[2rem] border-t border-black/[0.06] p-6 shadow-elevated">
-            <div className="w-10 h-1 bg-black/10 rounded-full mx-auto mb-5" />
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-full max-w-md bg-surface rounded-3xl border border-black/[0.06] p-6 shadow-elevated max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-lg mb-1 font-serif">Ban / Suspend User</h3>
             <p className="text-textMuted text-sm mb-4">User: <strong>{selectedUser.name}</strong></p>
             <textarea className="w-full bg-surfaceLight border border-black/[0.06] rounded-2xl p-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 resize-none mb-4 transition-all"
@@ -397,9 +395,8 @@ export default function AdminDashboard() {
       {/* Assignment Modal */}
       <AnimatePresence>
         {assigningTo && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[90] flex items-end justify-center">
-            <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }} className="w-full max-w-md bg-white rounded-t-[2rem] z-[100] p-8 shadow-elevated">
-              <div className="w-10 h-1 bg-black/10 rounded-full mx-auto mb-6" />
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[90] flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-md bg-white rounded-3xl z-[100] p-8 shadow-elevated max-h-[90vh] overflow-y-auto">
               <h3 className="font-bold text-xl mb-1 font-serif text-slate-900">Assign Field Officer</h3>
               <p className="text-textMuted text-sm mb-6">Select an officer to handle: <strong>{assigningTo.title}</strong></p>
               <div className="space-y-2 max-h-60 overflow-y-auto no-scrollbar mb-6">

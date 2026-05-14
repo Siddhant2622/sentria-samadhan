@@ -361,10 +361,9 @@ export default function SuperAdminDashboard() {
         {showAddModal && (
           <>
             <motion.div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[90]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAddModal(false)} />
-            <motion.div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white rounded-t-[3rem] z-[100] p-8 shadow-2xl"
-              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25 }}>
-              
-              <div className="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-8" />
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-none">
+              <motion.div className="w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl pointer-events-auto max-h-[90vh] overflow-y-auto"
+                initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} transition={{ type: 'spring', damping: 25 }}>
               <h3 className="text-2xl font-bold font-serif mb-2 text-slate-900">{editingAdmin ? 'Edit District Admin' : 'Add District Admin'}</h3>
               <p className="text-slate-500 text-sm mb-6">Grant admin access for a Madhya Pradesh district. The user will see the admin dashboard when they log in with this email.</p>
 
@@ -402,6 +401,7 @@ export default function SuperAdminDashboard() {
                 </div>
               </form>
             </motion.div>
+            </div>
           </>
         )}
       </AnimatePresence>
@@ -411,9 +411,9 @@ export default function SuperAdminDashboard() {
         {deleteConfirm && (
           <>
             <motion.div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[90]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setDeleteConfirm(null)} />
-            <motion.div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white rounded-t-[3rem] z-[100] p-8 shadow-2xl"
-              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25 }}>
-              <div className="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-6" />
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pointer-events-none">
+              <motion.div className="w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl pointer-events-auto max-h-[90vh] overflow-y-auto"
+                initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} transition={{ type: 'spring', damping: 25 }}>
               <h3 className="text-xl font-bold font-serif mb-2 text-slate-900">Remove District Admin</h3>
               <p className="text-slate-500 text-sm mb-8">Are you sure you want to revoke administrative access for <strong>{deleteConfirm.name}</strong>? This action cannot be undone.</p>
               <div className="flex gap-4">
@@ -421,6 +421,7 @@ export default function SuperAdminDashboard() {
                 <button onClick={handleDeleteAdmin} className="flex-1 bg-red-600 text-white py-4 rounded-2xl text-sm font-bold shadow-lg shadow-red-600/20">Remove Access</button>
               </div>
             </motion.div>
+            </div>
           </>
         )}
       </AnimatePresence>
