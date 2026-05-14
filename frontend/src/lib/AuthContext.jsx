@@ -79,6 +79,63 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
+  // ── Push Notifications ──────────────────────────────────────
+  useEffect(() => {
+    if (user && isCapacitor && idToken) {
+      initPushNotifications();
+    }
+  }, [user, idToken]);
+
+  const initPushNotifications = async () => {
+    try {
+      const { PushNotifications } = await import('@capacitor/push-notifications');
+
+      let permStatus = await PushNotifications.checkPermissions();
+      if (permStatus.receive === 'prompt') {
+        permStatus = await PushNotifications.requestPermissions();
+      }
+
+      if (permStatus.receive !== 'granted') {
+        console.warn('Push notification permission not granted');
+        return;
+      }
+
+      await PushNotifications.register();
+
+      PushNotifications.addListener('registration', async (token) => {
+        console.log('Push registration success, token: ' + token.value);
+        // Sync token to backend
+        try {
+          await fetch(`${API_BASE}/api/auth/update-fcm-token`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${idToken}`,
+            },
+            body: JSON.stringify({ fcm_token: token.value }),
+          });
+        } catch (e) {
+          console.error('Failed to sync FCM token:', e);
+        }
+      });
+
+      PushNotifications.addListener('registrationError', (error) => {
+        console.error('Push registration error:', error);
+      });
+
+      PushNotifications.addListener('pushNotificationReceived', (notification) => {
+        console.log('Push received:', notification);
+      });
+
+      PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+        console.log('Push action performed:', action);
+        // Handle deep linking or navigation if notification data contains IDs
+      });
+    } catch (e) {
+      console.error('Push notification initialization failed:', e);
+    }
+  };
+
   // ── Google Sign-In ──────────────────────────────────────────
   const loginWithGoogle = async () => {
     if (!isConfigured || !auth) {

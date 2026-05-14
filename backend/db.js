@@ -36,6 +36,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 profile_image TEXT,
                 district TEXT,
                 department TEXT,
+                fcm_token TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )`);
 
@@ -78,6 +79,10 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
             // Migration: add due_date_updated column if not exists
             db.run(`ALTER TABLE complaints ADD COLUMN due_date_updated INTEGER DEFAULT 0`, (err) => {
+                // Ignore error if column already exists
+            });
+
+            db.run(`ALTER TABLE users ADD COLUMN fcm_token TEXT`, (err) => {
                 // Ignore error if column already exists
             });
 

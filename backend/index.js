@@ -34,6 +34,32 @@ async function sendEmailNotification(to, subject, html) {
     console.error('Failed to send email:', error);
   }
 }
+
+async function sendPushNotification(token, title, body, data = {}) {
+  if (!token || !firebaseAdmin) {
+    console.log(`[Mock Push] No token or Firebase Admin not init | Title: ${title}`);
+    return;
+  }
+
+  try {
+    const message = {
+      notification: {
+        title,
+        body,
+      },
+      data: {
+        ...data,
+        click_action: 'FLUTTER_NOTIFICATION_CLICK', // Common for mobile apps
+      },
+      token: token,
+    };
+
+    const response = await firebaseAdmin.messaging().send(message);
+    console.log('Successfully sent push notification:', response);
+  } catch (error) {
+    console.error('Error sending push notification:', error);
+  }
+}
 const db = require('./db');
 const path = require('path');
 const fs = require('fs');
@@ -46,20 +72,29 @@ try {
   const admin = require('firebase-admin');
   const serviceAccountPath = path.join(__dirname, 'firebase-service-account.json');
   
-  if (fs.existsSync(serviceAccountPath)) {
-    if (!admin.apps.length) {
-      admin.initializeApp({
-        credential: admin.credential.cert(require(serviceAccountPath)),
-      });
+    if (fs.existsSync(serviceAccountPath)) {
+      if (!admin.apps.length) {
+        admin.initializeApp({
+          credential: admin.credential.cert(require(serviceAccountPath)),
+        });
+      }
+      firebaseAdmin = admin;
+      console.log('✅ Firebase Admin initialized via JSON file');
+    } else if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      if (!admin.apps.length) {
+        const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+        admin.initializeApp({
+          credential: admin.credential.cert(serviceAccount),
+        });
+      }
+      firebaseAdmin = admin;
+      console.log('✅ Firebase Admin initialized via Environment Variable');
+    } else {
+      console.warn('⚠️  Firebase credentials not found (JSON or ENV). Push notifications and Auth verification disabled.');
     }
-    firebaseAdmin = admin;
-    console.log('✅ Firebase Admin initialized');
-  } else {
-    console.warn('⚠️  firebase-service-account.json not found. Auth token verification disabled.');
+  } catch (e) {
+    console.warn('⚠️  firebase-admin initialization failed:', e.message);
   }
-} catch (e) {
-  console.warn('⚠️  firebase-admin not available:', e.message);
-}
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -591,6 +626,19 @@ app.post('/api/auth/firebase-login', verifyFirebaseToken, (req, res) => {
     );
   });
 });
++
++// Update FCM Token
++app.post('/api/auth/update-fcm-token', verifyFirebaseToken, (req, res) => {
++  const { fcm_token } = req.body;
++  const firebaseUid = req.firebaseUid;
++
++  if (!fcm_token) return res.status(400).json({ error: 'FCM token is required.' });
++
++  db.run('UPDATE users SET fcm_token = ? WHERE id = ?', [fcm_token, firebaseUid], function(err) {
++    if (err) return res.status(500).json({ error: err.message });
++    res.json({ success: true, message: 'FCM token updated successfully.' });
++  });
++});
 
 // 2. Demo Login (Bypass Firebase for testing/hackathon presentations)
 app.post('/api/auth/demo-login', (req, res) => {
@@ -1000,7 +1048,7 @@ app.post('/api/complaints', (req, res) => {
     // Strictly match department — officer must have a matching department set.
     // If multiple exist, pick the one with fewest active tasks (load balancing)
     const findOfficerQuery = `
-      SELECT u.id, u.name, u.email, COUNT(c.id) as task_count 
+      SELECT u.id, u.name, u.email, u.fcm_token, COUNT(c.id) as task_count 
       FROM users u
       LEFT JOIN complaints c ON u.id = c.assigned_officer_id AND c.status NOT IN ('Resolved', 'Completed')
       WHERE u.role = 'Officer' 
@@ -1064,6 +1112,15 @@ app.post('/api/complaints', (req, res) => {
                          <br/><p>Please log in to the Sentria Samadhan portal to take action.</p>`
                     );
                 }
+
+                if (officer?.fcm_token) {
+                    sendPushNotification(
+                        officer.fcm_token,
+                        'New Task Assigned!',
+                        `A new complaint "${title}" has been assigned to you.`,
+                        { complaint_id: id, type: 'task_assigned' }
+                    );
+                }
             });
 
             res.json({ success: true, complaint_id: id, message: 'Complaint registered successfully.', is_fake, assigned_to: assigned_name });
@@ -1112,23 +1169,34 @@ app.put('/api/complaints/:id/assign', (req, res) => {
             if (err) return res.status(500).json({ error: err.message });
 
             // Send email notification to the assigned officer
-            db.get('SELECT email FROM users WHERE id = ?', [officer_id], (err2, officer) => {
-                if (officer && officer.email) {
+            db.get('SELECT email, fcm_token FROM users WHERE id = ?', [officer_id], (err2, officer) => {
+                if (officer) {
                     db.get('SELECT title, description, address, latitude, longitude, urgency_level, category FROM complaints WHERE id = ?', [req.params.id], (err3, complaint) => {
                         if (complaint) {
-                            sendEmailNotification(
-                                officer.email,
-                                'New Complaint Assigned: ' + (complaint.title || 'Civic Issue'),
-                                `<h3>Hello ${officer_name},</h3>
-                                 <p>A complaint has been assigned to you by the District Admin.</p>
-                                 <p><strong>Title:</strong> ${complaint.title}</p>
-                                 <p><strong>Description:</strong> ${complaint.description || 'N/A'}</p>
-                                 <p><strong>Category:</strong> ${complaint.category || 'General'}</p>
-                                 <p><strong>Location:</strong> ${complaint.address || 'Coordinates: ' + complaint.latitude + ', ' + complaint.longitude}</p>
-                                 <p><strong>Urgency:</strong> ${complaint.urgency_level || 'Medium'}</p>
-                                 <br/><p>Please log in to the Sentria Samadhan Field Officer Portal to take action.</p>
-                                 <p>Regards,<br/>Sentria Samadhan System</p>`
-                            );
+                            if (officer.email) {
+                                sendEmailNotification(
+                                    officer.email,
+                                    'New Complaint Assigned: ' + (complaint.title || 'Civic Issue'),
+                                    `<h3>Hello ${officer_name},</h3>
+                                     <p>A complaint has been assigned to you by the District Admin.</p>
+                                     <p><strong>Title:</strong> ${complaint.title}</p>
+                                     <p><strong>Description:</strong> ${complaint.description || 'N/A'}</p>
+                                     <p><strong>Category:</strong> ${complaint.category || 'General'}</p>
+                                     <p><strong>Location:</strong> ${complaint.address || 'Coordinates: ' + complaint.latitude + ', ' + complaint.longitude}</p>
+                                     <p><strong>Urgency:</strong> ${complaint.urgency_level || 'Medium'}</p>
+                                     <br/><p>Please log in to the Sentria Samadhan Field Officer Portal to take action.</p>
+                                     <p>Regards,<br/>Sentria Samadhan System</p>`
+                                );
+                            }
+
+                            if (officer.fcm_token) {
+                                sendPushNotification(
+                                    officer.fcm_token,
+                                    'New Task Assigned!',
+                                    `A new complaint "${complaint.title}" has been assigned to you by the Admin.`,
+                                    { complaint_id: req.params.id, type: 'task_assigned' }
+                                );
+                            }
                         }
                     });
                 }
