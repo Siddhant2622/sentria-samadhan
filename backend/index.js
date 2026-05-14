@@ -108,25 +108,41 @@ if(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'your_api_key_he
 // Model fallback chain — if one model is rate-limited, try the next
 const MODEL_CHAIN = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'];
 
-async function generateWithRetry(contents) {
+function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+async function generateWithRetry(contents, maxRetries = 2) {
   let lastError;
-  for (const model of MODEL_CHAIN) {
-    try {
-      const response = await ai.models.generateContent({ model, contents });
-      return response;
-    } catch (e) {
-      lastError = e;
-      const errMsg = e.message || '';
-      // If it's a quota/rate error, try next model
-      if (errMsg.includes('429') || errMsg.includes('RESOURCE_EXHAUSTED') || errMsg.includes('quota')) {
-        console.log(`⚠️  Model ${model} rate-limited, trying next...`);
-        continue;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    for (const model of MODEL_CHAIN) {
+      try {
+        console.log(`🤖 Trying ${model} (attempt ${attempt + 1})...`);
+        const response = await ai.models.generateContent({ model, contents });
+        console.log(`✅ ${model} succeeded!`);
+        return response;
+      } catch (e) {
+        lastError = e;
+        const errMsg = e.message || '';
+        if (errMsg.includes('429') || errMsg.includes('RESOURCE_EXHAUSTED') || errMsg.includes('quota')) {
+          console.log(`⚠️  ${model} rate-limited`);
+          continue; // Try next model
+        }
+        if (errMsg.includes('404')) {
+          console.log(`⚠️  ${model} not found, skipping`);
+          continue; // Model doesn't exist, try next
+        }
+        // Other errors (auth, bad request) — throw immediately
+        throw e;
       }
-      // If it's a different error (bad request, etc), throw immediately
-      throw e;
+    }
+    // All models failed this attempt — wait before retrying
+    if (attempt < maxRetries - 1) {
+      const waitSec = (attempt + 1) * 15; // 15s, 30s
+      console.log(`⏳ All models rate-limited, waiting ${waitSec}s before retry...`);
+      await sleep(waitSec * 1000);
     }
   }
-  // All models exhausted
+  // All retries exhausted
   throw lastError;
 }
 
@@ -562,12 +578,31 @@ app.post('/api/auth/demo-login', (req, res) => {
   );
 });
 
-app.get('/api/ai/status', (req, res) => {
-    res.json({
-      configured: Boolean(ai),
-      model: 'gemini-2.0-flash',
-      validation: 'strict civic image verification enabled'
-    });
+app.get('/api/ai/status', async (req, res) => {
+    if (!ai) {
+      return res.json({ configured: false, error: 'GEMINI_API_KEY not set' });
+    }
+    // Live test — actually call the API to check if the key works
+    try {
+      const r = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: 'Reply with just OK' });
+      res.json({
+        configured: true,
+        working: true,
+        model: 'gemini-2.5-flash',
+        testResponse: r.text?.substring(0, 50),
+        keyPrefix: process.env.GEMINI_API_KEY?.substring(0, 8) + '...'
+      });
+    } catch (e) {
+      const errMsg = e.message || '';
+      const isQuota = errMsg.includes('429') || errMsg.includes('quota');
+      res.json({
+        configured: true,
+        working: false,
+        error: isQuota ? 'API quota exceeded - rate limited' : errMsg.substring(0, 200),
+        keyPrefix: process.env.GEMINI_API_KEY?.substring(0, 8) + '...',
+        hint: isQuota ? 'Wait 60s or use a new API key from a DIFFERENT Google account' : 'Check if your API key is valid'
+      });
+    }
 });
 
 // Helper function to read file as inline data for Gemini
