@@ -52,11 +52,16 @@ export default function LocalAuthorityDashboard() {
 
   // Notification State
   const [showNotifications, setShowNotifications] = useState(false);
+  const [seenIds, setSeenIds] = useState(() => new Set(JSON.parse(localStorage.getItem('sentria_officer_notifs') || '[]')));
+
+  // Device Notification Request
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
   const prevTaskIdsRef = useRef(new Set());
-  const [seenIds, setSeenIds] = useState(() => {
-    try { return new Set(JSON.parse(localStorage.getItem('sentria_officer_notifs') || '[]')); }
-    catch { return new Set(); }
-  });
   const hasInteracted = useRef(false);
 
   // Track user interaction so we can play sound (browser requires gesture first)
@@ -81,6 +86,21 @@ export default function LocalAuthorityDashboard() {
         
         if (newTasks.length > 0 && prevIds.size > 0 && hasInteracted.current) {
           playNotificationSound();
+          if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+              const notif = new Notification('New Civic Task Assigned', {
+                body: `You have ${newTasks.length} new task(s) to review.`,
+                icon: '/logo.png',
+                badge: '/logo.png'
+              });
+              notif.onclick = () => {
+                window.focus();
+                notif.close();
+              };
+            } catch (e) {
+              console.warn('Device notification failed:', e);
+            }
+          }
         }
         
         prevTaskIdsRef.current = currentIds;
@@ -232,21 +252,40 @@ export default function LocalAuthorityDashboard() {
 
       {/* Dynamic Address Search Bar */}
       <div className="px-4 pt-3 pb-1">
-        <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-textMuted" />
-          <input
-            type="text"
-            value={addressQuery}
-            onChange={(e) => handleAddressSearch(e.target.value)}
-            placeholder="Search any address or landmark..."
-            className="w-full bg-surfaceLight border border-black/[0.06] rounded-xl pl-9 pr-10 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
-          />
-          {addressLoading && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-primary animate-spin" />}
-          {!addressLoading && addressQuery && (
-            <button onClick={() => { setAddressQuery(''); setAddressResults([]); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-textMuted hover:text-textMain">
-              <X size={14} />
-            </button>
-          )}
+        <div className="flex gap-2 relative z-30">
+          <div className="relative flex-1">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-textMuted" />
+            <input
+              type="text"
+              value={addressQuery}
+              onChange={(e) => handleAddressSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && addressQuery.trim()) {
+                  window.open(`https://www.google.com/maps/search/${encodeURIComponent(addressQuery)}`, '_blank');
+                  setAddressResults([]);
+                }
+              }}
+              placeholder="Search any address or landmark..."
+              className="w-full bg-surfaceLight border border-black/[0.06] rounded-xl pl-9 pr-10 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+            />
+            {addressLoading && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-primary animate-spin" />}
+            {!addressLoading && addressQuery && (
+              <button onClick={() => { setAddressQuery(''); setAddressResults([]); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-textMuted hover:text-textMain">
+                <X size={14} />
+              </button>
+            )}
+          </div>
+          <button 
+            onClick={() => {
+              if (addressQuery.trim()) {
+                window.open(`https://www.google.com/maps/search/${encodeURIComponent(addressQuery)}`, '_blank');
+                setAddressResults([]);
+              }
+            }}
+            className="bg-primary text-white px-3 py-2.5 rounded-xl font-bold text-xs shadow-soft shrink-0 flex items-center"
+          >
+            Open Map
+          </button>
         </div>
         {/* Address Suggestions Dropdown */}
         <AnimatePresence>
