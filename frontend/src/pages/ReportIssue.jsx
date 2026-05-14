@@ -133,15 +133,19 @@ export default function ReportIssue() {
         }
         setAnalysis(data.analysis);
         setUploadedMediaUrl(data.media_url);
-        setImageHash(data.image_hash);
-        setChatHistory([{ sender: 'ai', text: data.analysis.ai_analysis }]);
+        setImageHash(data.image_hash || '');
+        const aiMsg = data.analysis.ai_analysis || data.analysis.citizen_question || `Detected: ${data.analysis.title}. ${data.analysis.description || ''}`;
+        setChatHistory([{ sender: 'ai', text: aiMsg }]);
         setStep(3);
       } else {
-        setUploadError(data.error || 'AI Analysis failed.');
+        const errMsg = response.status === 429 
+          ? 'AI is temporarily busy. Please wait 60 seconds and try again.'
+          : (data.error || 'AI Analysis failed.');
+        setUploadError(errMsg);
         setStep(1);
       }
     } catch (e) {
-      setUploadError('Network error during analysis.');
+      setUploadError('Network error. Please check your connection and try again.');
       setStep(1);
     }
   };

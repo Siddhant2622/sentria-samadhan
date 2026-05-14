@@ -105,6 +105,31 @@ if(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'your_api_key_he
   ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 }
 
+// Model fallback chain — if one model is rate-limited, try the next
+const MODEL_CHAIN = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'];
+
+async function generateWithRetry(contents) {
+  let lastError;
+  for (const model of MODEL_CHAIN) {
+    try {
+      const response = await ai.models.generateContent({ model, contents });
+      return response;
+    } catch (e) {
+      lastError = e;
+      const errMsg = e.message || '';
+      // If it's a quota/rate error, try next model
+      if (errMsg.includes('429') || errMsg.includes('RESOURCE_EXHAUSTED') || errMsg.includes('quota')) {
+        console.log(`⚠️  Model ${model} rate-limited, trying next...`);
+        continue;
+      }
+      // If it's a different error (bad request, etc), throw immediately
+      throw e;
+    }
+  }
+  // All models exhausted
+  throw lastError;
+}
+
 // Set up storage for image uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -420,18 +445,19 @@ Respond ONLY with a JSON object:
 }
         `;
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.0-flash',
-            contents: prompt
-        });
+        const response = await generateWithRetry(prompt);
 
         const raw = extractJson(response.text);
         const analysis = normalizeAnalysis(raw);
         
         res.json({ success: true, analysis });
     } catch (error) {
-        console.error("Text Analysis Error:", error);
-        res.status(500).json({ success: false, error: 'AI Analysis failed' });
+        console.error("Text Analysis Error:", error.message?.substring(0, 200));
+        const isQuota = (error.message || '').includes('429') || (error.message || '').includes('quota');
+        res.status(isQuota ? 429 : 500).json({ 
+          success: false, 
+          error: isQuota ? 'AI is temporarily busy. Please try again in 60 seconds.' : 'AI Analysis failed' 
+        });
     }
 });
 
@@ -817,13 +843,10 @@ Return ONLY valid JSON with these exact keys:
 }
 `;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash',
-        contents: [
+      const response = await generateWithRetry([
           imagePart,
           { text: prompt }
-        ]
-      });
+        ]);
 
       const analysisData = normalizeAnalysis(extractJson(response.text));
 
@@ -850,8 +873,13 @@ Return ONLY valid JSON with these exact keys:
           }
       });
     } catch (error) {
-      console.error("Gemini API Error:", error);
-      res.status(500).json({ success: false, code: 'AI_ANALYSIS_FAILED', error: 'Failed to analyze image with AI', details: error.message });
+      console.error("Gemini API Error:", error.message?.substring(0, 200));
+      const isQuota = (error.message || '').includes('429') || (error.message || '').includes('quota');
+      if (isQuota) {
+        res.status(429).json({ success: false, code: 'AI_RATE_LIMITED', error: 'AI is temporarily busy. Please wait 60 seconds and try again.' });
+      } else {
+        res.status(500).json({ success: false, code: 'AI_ANALYSIS_FAILED', error: 'Failed to analyze image with AI', details: error.message });
+      }
     }
 });
 
@@ -875,14 +903,16 @@ Citizen just said: "${complaintContext.description}"
 
 Respond helpfully and concisely (max 2 sentences). Ask for specific details that will help authorities (exact location, duration of issue, severity). Be empathetic and professional.`;
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.0-flash',
-            contents: prompt
-        });
+        const response = await generateWithRetry(prompt);
         res.json({ success: true, reply: response.text });
     } catch (error) {
-        console.error("Chat Error:", error);
-        res.status(500).json({ success: false, error: 'Chat Assistant failed', details: error.message });
+        console.error("Chat Error:", error.message?.substring(0, 200));
+        const isQuota = (error.message || '').includes('429') || (error.message || '').includes('quota');
+        res.status(isQuota ? 429 : 500).json({ 
+          success: false, 
+          reply: isQuota ? 'I am temporarily busy. Please try again in a minute.' : 'Sorry, I could not process your message. Please try again.',
+          error: 'Chat Assistant failed'
+        });
     }
 });
 
