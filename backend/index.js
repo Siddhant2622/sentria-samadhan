@@ -992,19 +992,23 @@ app.post('/api/complaints', (req, res) => {
     const expectedDate = new Date();
     expectedDate.setDate(expectedDate.getDate() + 3);
 
-    // AI Auto-Assignment: Find an officer in the same district and department
-    // If multiple exist, we pick the one with the fewest active tasks for load balancing
+    // Auto-Assignment: Find an officer in the same district AND department
+    // Strictly match department — officer must have a matching department set.
+    // If multiple exist, pick the one with fewest active tasks (load balancing)
     const findOfficerQuery = `
       SELECT u.id, u.name, u.email, COUNT(c.id) as task_count 
       FROM users u
       LEFT JOIN complaints c ON u.id = c.assigned_officer_id AND c.status NOT IN ('Resolved', 'Completed')
-      WHERE u.role = 'Officer' AND (u.district = ? OR u.district = 'All Districts') AND u.department = ?
+      WHERE u.role = 'Officer' 
+        AND u.department = ? 
+        AND u.department != ''
+        AND (u.district = ? OR u.district = '' OR u.district IS NULL OR u.district = 'All Districts')
       GROUP BY u.id
       ORDER BY task_count ASC
       LIMIT 1
     `;
 
-    db.get(findOfficerQuery, [district || '', department_id || ''], (err, officer) => {
+    db.get(findOfficerQuery, [department_id || '', district || ''], (err, officer) => {
         const assigned_id = officer ? officer.id : null;
         const assigned_name = officer ? officer.name : null;
         const initial_status = officer ? 'Assigned' : 'Pending';
@@ -1404,6 +1408,16 @@ app.put('/api/admin/officers/:id', (req, res) => {
         [name, email || '', phone || '', department, req.params.id],
         function(err) {
             if (err) return res.status(500).json({ error: err.message });
+
+            // Propagate name change to all complaints assigned to this officer
+            db.run(
+                'UPDATE complaints SET assigned_officer_name = ? WHERE assigned_officer_id = ?',
+                [name, req.params.id],
+                function(propErr) {
+                    if (propErr) console.error('Failed to propagate officer name:', propErr);
+                }
+            );
+
             db.get('SELECT id, name, email, phone, department, role, district, created_at FROM users WHERE id = ?', [req.params.id], (err2, row) => {
                 if (err2) return res.status(500).json({ error: err2.message });
                 res.json({ success: true, officer: row });

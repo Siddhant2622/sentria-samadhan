@@ -344,9 +344,13 @@ export default function AdminDashboard() {
                 className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm focus:outline-none focus:border-primary">
                 <option value="">Select Department</option>
                 <option value="PWD">Public Works (PWD)</option>
-                <option value="Sanitation">Sanitation</option>
-                <option value="Electricity">Electricity</option>
-                <option value="Water">Water Board</option>
+                <option value="SANITATION">Sanitation</option>
+                <option value="ELECTRICITY_BOARD">Electricity Board</option>
+                <option value="WATER_WORKS">Water Works</option>
+                <option value="TRAFFIC_POLICE">Traffic Police</option>
+                <option value="ENVIRONMENT">Environment</option>
+                <option value="FIRE_DEPT">Fire & Emergency</option>
+                <option value="MUNICIPAL_CORP">Municipal Corporation</option>
               </select>
               <div className="flex gap-3 mt-4">
                 <button onClick={() => setShowAddAuthority(false)} className="flex-1 bg-slate-50 py-4 rounded-2xl text-sm font-medium">Cancel</button>

@@ -109,11 +109,14 @@ const db = new sqlite3.Database(dbPath, (err) => {
             )`);
             
             // Seed a default admin and officer if they don't exist
-            db.run(`INSERT OR IGNORE INTO users (id, name, phone, email, role, aadhaar_verified) VALUES 
-                ('admin-1', 'Admin Municipal Corp', '9999999999', 'admin@sentria.gov.in', 'Admin', 1),
-                ('officer-1', 'Rajesh Kumar (PWD)', '8888888888', 'rajesh@pwd.gov.in', 'Officer', 1),
-                ('citizen-1', 'Aarav Sharma', '7777777777', 'aarav@citizen.com', 'Citizen', 1)
+            db.run(`INSERT OR IGNORE INTO users (id, name, phone, email, role, department, district, aadhaar_verified) VALUES 
+                ('admin-1', 'Admin Municipal Corp', '9999999999', 'admin@sentria.gov.in', 'Admin', 'MUNICIPAL_CORP', '', 1),
+                ('officer-1', 'Rajesh Kumar', '8888888888', 'rajesh@pwd.gov.in', 'Officer', 'PWD', '', 1),
+                ('citizen-1', 'Aarav Sharma', '7777777777', 'aarav@citizen.com', 'Citizen', '', '', 1)
             `);
+
+            // Migration: fix existing officer-1 if it was seeded without department
+            db.run(`UPDATE users SET department = 'PWD', name = 'Rajesh Kumar' WHERE id = 'officer-1' AND (department IS NULL OR department = '')`);
             
         });
     }
