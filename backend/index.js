@@ -1083,7 +1083,7 @@ app.post('/api/complaints', (req, res) => {
                 return res.status(500).json({ error: err.message });
             }
             
-            db.get('SELECT email, name FROM users WHERE id = ?', [citizen_id], (err, citizen) => {
+            db.get('SELECT email, name, fcm_token FROM users WHERE id = ?', [citizen_id], (err, citizen) => {
                 const citizenEmail = citizen?.email;
                 const citizenName = citizen?.name || 'Citizen';
                 const officerEmail = officer?.email;
@@ -1098,6 +1098,15 @@ app.post('/api/complaints', (req, res) => {
                          <p><strong>Category:</strong> ${category}</p>
                          <p>We will keep you updated on its progress.</p>
                          <br/><p>Regards,<br/>Sentria Samadhan Team</p>`
+                    );
+                }
+
+                if (citizen?.fcm_token) {
+                    sendPushNotification(
+                        citizen.fcm_token,
+                        'Complaint Registered',
+                        `${category} issue: ${title}\nWe are routing this to the ${department_id || 'appropriate'} department.`,
+                        { complaint_id: id, type: 'complaint_registered' }
                     );
                 }
 
@@ -1117,10 +1126,36 @@ app.post('/api/complaints', (req, res) => {
                 if (officer?.fcm_token) {
                     sendPushNotification(
                         officer.fcm_token,
-                        'New Task Assigned!',
-                        `A new complaint "${title}" has been assigned to you.`,
+                        `New Task: ${category} - ${urgency_level} Urgency`,
+                        `${title}\nLocation: ${address || 'Pending'}\n${description}`,
                         { complaint_id: id, type: 'task_assigned' }
                     );
+                } else if (!officer) {
+                    // Alert Admins if no officer is found
+                    db.all('SELECT email, fcm_token FROM users WHERE role IN ("Admin", "SuperAdmin") AND (district = ? OR district = "All Districts" OR district = "")', [district || ''], (err, admins) => {
+                        admins?.forEach(admin => {
+                            if (admin.email) {
+                                sendEmailNotification(
+                                    admin.email,
+                                    'New Unassigned Complaint: ' + title,
+                                    `<h3>Hello Admin,</h3>
+                                     <p>A new complaint was raised but no officer was available to auto-assign.</p>
+                                     <p><strong>Department:</strong> ${department_id || 'Unknown'}</p>
+                                     <p><strong>Title:</strong> ${title}</p>
+                                     <p><strong>Location:</strong> ${address || 'Coordinates: ' + latitude + ', ' + longitude}</p>
+                                     <br/><p>Please assign it manually.</p>`
+                                );
+                            }
+                            if (admin.fcm_token) {
+                                sendPushNotification(
+                                    admin.fcm_token,
+                                    `Unassigned ${category} Complaint`,
+                                    `${title}\nNeeds manual assignment for ${department_id || 'department'}.`,
+                                    { complaint_id: id, type: 'needs_assignment' }
+                                );
+                            }
+                        });
+                    });
                 }
             });
 
@@ -1155,7 +1190,23 @@ app.get('/api/complaints', (req, res) => {
     
     db.all(query, params, (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
-        const complaints = rows.map(r => ({ ...r, media_urls: JSON.parse(r.media_urls || '[]') }));
+        const complaints = rows.map(r => {
+            let created_at = r.created_at;
+            let expected_completion_date = r.expected_completion_date;
+            let actual_completion_date = r.actual_completion_date;
+            
+            if (created_at && !created_at.includes('T')) created_at = created_at.replace(' ', 'T') + 'Z';
+            if (expected_completion_date && !expected_completion_date.includes('T')) expected_completion_date = expected_completion_date.replace(' ', 'T') + 'Z';
+            if (actual_completion_date && !actual_completion_date.includes('T')) actual_completion_date = actual_completion_date.replace(' ', 'T') + 'Z';
+
+            return {
+                ...r,
+                created_at,
+                expected_completion_date,
+                actual_completion_date,
+                media_urls: JSON.parse(r.media_urls || '[]')
+            };
+        });
         res.json(complaints);
     });
 });
@@ -1218,6 +1269,11 @@ app.get('/api/complaints/:id', (req, res) => {
     `, [req.params.id], (err, row) => {
         if (err) return res.status(500).json({ error: err.message });
         if (!row) return res.status(404).json({ error: 'Complaint not found' });
+        
+        if (row.created_at && !row.created_at.includes('T')) row.created_at = row.created_at.replace(' ', 'T') + 'Z';
+        if (row.expected_completion_date && !row.expected_completion_date.includes('T')) row.expected_completion_date = row.expected_completion_date.replace(' ', 'T') + 'Z';
+        if (row.actual_completion_date && !row.actual_completion_date.includes('T')) row.actual_completion_date = row.actual_completion_date.replace(' ', 'T') + 'Z';
+        
         row.media_urls = JSON.parse(row.media_urls || '[]');
         res.json(row);
     });
