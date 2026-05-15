@@ -2,6 +2,6 @@
 // In production, use the environment variable or fallback to Render.
 const rawApiBase = import.meta.env.DEV 
   ? "" 
-  : (import.meta.env.VITE_API_URL || "https://sentria-samadhan-backend.onrender.com");
+  : "https://sentria-samadhan-backend.onrender.com";
 
 export const API_BASE = rawApiBase.endsWith('/') ? rawApiBase.slice(0, -1) : rawApiBase;
