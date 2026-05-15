@@ -288,7 +288,7 @@ export default function LiveTracking() {
             </div>
             {complaint.assigned_officer_phone ? (
               <a 
-                href={`tel:${complaint.assigned_officer_phone}`}
+                href={`tel:${complaint.assigned_officer_phone.replace(/[^0-9+]/g, '')}`}
                 className="p-2 bg-primary/10 text-primary rounded-full transition-transform hover:scale-110 active:scale-95"
                 title={complaint.assigned_officer_phone}
               >
