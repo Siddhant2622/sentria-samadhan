@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Clock, ArrowRight, ShieldCheck, Camera, Bell, Activity, Zap, LogOut, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fetchComplaints, formatRelativeTime, statusColor, urgencyColor, openInGoogleMaps } from '../lib/api';
+import { fetchComplaints, formatRelativeTime, statusColor, urgencyColor, openInGoogleMaps, resolveImageUrl } from '../lib/api';
 import { API_BASE } from '../lib/config';
 import { useAuth } from '../lib/AuthContext';
 import { useLanguage } from '../lib/LanguageContext';
@@ -239,18 +239,32 @@ export default function Dashboard() {
                   <span className={`px-2 py-1 rounded-full text-[10px] font-semibold ${statusColor(item.status)}`}>{item.status || 'Pending'}</span>
                 </div>
               </div>
-              <h3 className="font-semibold text-textMain mb-1">{item.title}</h3>
-              {typeof item.progress_percentage === 'number' && (
-                <div className="mb-2">
-                  <div className="flex justify-between text-[10px] text-textMuted mb-1">
-                    <span>Work progress</span><span>{item.progress_percentage}%</span>
+              <div className="flex gap-4">
+                {item.media_urls && item.media_urls.length > 0 && (
+                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-black/5 flex-shrink-0">
+                    <img 
+                      src={resolveImageUrl(item.media_urls[0])} 
+                      alt="Evidence" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-textMuted m-auto"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>'; }}
+                    />
                   </div>
-                  <div className="h-1.5 bg-black/[0.06] rounded-full overflow-hidden">
-                    <motion.div className="h-full bg-gradient-to-r from-primary to-teal rounded-full"
-                      initial={{ width: 0 }} animate={{ width: `${item.progress_percentage}%` }} transition={{ duration: 0.8, delay: index * 0.05 }} />
-                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-textMain mb-1 truncate">{item.title}</h3>
+                  {typeof item.progress_percentage === 'number' && (
+                    <div className="mb-2">
+                      <div className="flex justify-between text-[10px] text-textMuted mb-1">
+                        <span>Work progress</span><span>{item.progress_percentage}%</span>
+                      </div>
+                      <div className="h-1.5 bg-black/[0.06] rounded-full overflow-hidden">
+                        <motion.div className="h-full bg-gradient-to-r from-primary to-teal rounded-full"
+                          initial={{ width: 0 }} animate={{ width: `${item.progress_percentage}%` }} transition={{ duration: 0.8, delay: index * 0.05 }} />
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
               <div className="flex justify-between items-center mt-3 gap-2">
                 <div 
                   className="flex items-center text-xs text-textMuted min-w-0 cursor-pointer group hover:text-primary transition-colors flex-1"

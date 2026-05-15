@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Shield, Filter, Search, Map as MapIcon, BarChart2, Bell, Clock, AlertTriangle, Home, Users, CheckCircle, Ban, Eye, TrendingUp, ChevronRight, Plus, Zap, X, LogOut } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fetchComplaints, formatRelativeTime, statusColor, urgencyColor, openInGoogleMaps } from '../lib/api';
+import { fetchComplaints, formatRelativeTime, statusColor, urgencyColor, openInGoogleMaps, resolveImageUrl } from '../lib/api';
 import { API_BASE } from '../lib/config';
 import { useAuth } from '../lib/AuthContext';
 
@@ -183,8 +183,20 @@ export default function AdminDashboard() {
                     <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider whitespace-nowrap ${urgencyColor(c.urgency_level)}`}>{c.urgency_level || 'Medium'}</span>
                   </div>
                 </div>
-                <h3 className="font-bold text-textMain mb-1">{c.title}</h3>
-                <div className="flex items-center text-xs text-textMuted mb-2">
+                <div className="flex gap-4">
+                  {c.media_urls && c.media_urls.length > 0 && (
+                    <div className="w-20 h-20 rounded-xl overflow-hidden bg-black/5 flex-shrink-0">
+                      <img 
+                        src={resolveImageUrl(c.media_urls[0])} 
+                        alt="Evidence" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-textMain mb-1 truncate">{c.title}</h3>
+                    <div className="flex items-center text-xs text-textMuted mb-2">
                   <span 
                     className="flex items-center min-w-0 cursor-pointer group hover:text-primary transition-colors"
                     onClick={(e) => { e.stopPropagation(); openInGoogleMaps(c.address, c.latitude, c.longitude); }}
@@ -203,6 +215,8 @@ export default function AdminDashboard() {
                     <p className="text-[10px] text-textMuted mt-1">{c.progress_percentage}% complete</p>
                   </div>
                 )}
+                </div>
+                </div>
                 <div className="flex items-center justify-between pt-2 border-t border-black/[0.04] gap-2">
                   <div className="flex items-center gap-2">
                     <span className={`text-xs font-semibold px-2 py-1 rounded-full ${statusColor(c.status)}`}>{c.status || 'Pending'}</span>

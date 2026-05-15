@@ -3,7 +3,7 @@ import { API_BASE } from '../lib/config';
 import { useNavigate } from 'react-router-dom';
 import { Shield, MapPin, Clock, CheckCircle, Camera, AlertTriangle, UserX, AlertCircle, X, ChevronRight, Truck, Activity, Bell, Search, Navigation, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fetchComplaints, statusColor, urgencyColor, formatRelativeTime } from '../lib/api';
+import { fetchComplaints, statusColor, urgencyColor, formatRelativeTime, resolveImageUrl } from '../lib/api';
 import { useAuth } from '../lib/AuthContext';
 
 // Generate a notification chime using Web Audio API (no external file needed)
@@ -272,7 +272,21 @@ export default function LocalAuthorityDashboard() {
                   </span>
                 </div>
                 
-                <h3 className="font-bold mb-1">{task.title}</h3>
+                  {task.media_urls && task.media_urls.length > 0 && (
+                    <div className="w-full h-32 mb-3 rounded-xl overflow-hidden bg-black/5 relative">
+                      <img 
+                        src={resolveImageUrl(task.media_urls[0])} 
+                        alt="Task Evidence" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      />
+                      <div className="absolute top-2 right-2 bg-black/40 backdrop-blur-md text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold">
+                        ORIGINAL EVIDENCE
+                      </div>
+                    </div>
+                  )}
+
+                  <h3 className="font-bold mb-1">{task.title}</h3>
                 
                 <div className="space-y-1 mb-3">
                   <div className="flex items-center text-xs text-textMuted group cursor-pointer" onClick={(e) => { e.stopPropagation(); if(task.address) window.open(`https://www.google.com/maps/search/${encodeURIComponent(task.address)}`, '_blank'); }}>
@@ -346,6 +360,16 @@ export default function LocalAuthorityDashboard() {
                 </div>
                 
                 <div className="bg-surfaceLight/50 p-3 rounded-2xl mb-5 space-y-3">
+                  {activeTask.media_urls && activeTask.media_urls.length > 0 && (
+                    <div className="rounded-xl overflow-hidden mb-2 border border-black/5">
+                      <img 
+                        src={resolveImageUrl(activeTask.media_urls[0])} 
+                        alt="Evidence" 
+                        className="w-full h-auto object-cover max-h-48"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      />
+                    </div>
+                  )}
                   <div className="flex items-start gap-2">
                     <MapPin size={14} className="text-teal shrink-0 mt-0.5" />
                     <div className="flex-1">

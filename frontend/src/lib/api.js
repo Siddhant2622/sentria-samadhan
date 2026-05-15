@@ -111,6 +111,14 @@ export function urgencyColor(urgency = '') {
   return 'bg-accent/20 text-accent';
 }
 
+export function resolveImageUrl(url) {
+  if (!url) return '';
+  if (url.startsWith('http')) return url;
+  // Ensure no double slashes between API_BASE and the url
+  const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+  return `${API_BASE}${cleanUrl}`;
+}
+
 /** Open an address or lat/lng in Google Maps in a new tab */
 export function openInGoogleMaps(address, lat, lng) {
   if (lat && lng) {

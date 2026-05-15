@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Layers, MapPin, Navigation, ShieldAlert } from 'lucide-react';
-import { fetchComplaints, urgencyColor, openInGoogleMaps } from '../lib/api';
+import { fetchComplaints, urgencyColor, openInGoogleMaps, resolveImageUrl } from '../lib/api';
+import { API_BASE } from '../lib/config';
 
 export default function MapPage() {
   const navigate = useNavigate();
@@ -67,12 +68,11 @@ export default function MapPage() {
             key={item.id}
             className="w-full korean-card p-4 text-left flex items-center gap-3"
           >
-            <button
-              onClick={() => openInGoogleMaps(item.address, item.latitude, item.longitude)}
-              className="bg-surfaceLight p-2 rounded-xl hover:bg-primary/10 transition-colors group"
-            >
-              <ShieldAlert size={18} className="text-primary group-hover:scale-110 transition-transform" />
-            </button>
+            {item.media_urls && item.media_urls.length > 0 && (
+              <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-black/5">
+                <img src={resolveImageUrl(item.media_urls[0])} alt="Report" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+              </div>
+            )}
             <div className="min-w-0 flex-1 cursor-pointer" onClick={() => navigate(`/track/${item.id}`)}>
               <p className="font-semibold truncate">{item.title}</p>
               <p 

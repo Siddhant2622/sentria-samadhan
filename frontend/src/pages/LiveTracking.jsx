@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, Truck, ShieldAlert, Phone, Flag, MapPin, ChevronUp, AlertTriangle, Clock, Info, Star, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fetchComplaint, statusColor, urgencyColor, openInGoogleMaps } from '../lib/api';
+import { fetchComplaint, statusColor, urgencyColor, openInGoogleMaps, resolveImageUrl } from '../lib/api';
 import { API_BASE } from '../lib/config';
 
 const TRACKING_STEPS = [
@@ -182,6 +182,22 @@ export default function LiveTracking() {
       </div>
 
       <div className="p-5 space-y-5">
+        {/* Evidence Photo */}
+        {complaint.media_urls && complaint.media_urls.length > 0 && (
+          <div className="korean-card p-0 overflow-hidden shadow-card mb-5">
+            <div className="bg-surfaceLight px-4 py-2 border-b border-black/[0.05] flex items-center justify-between">
+              <span className="text-[10px] font-bold text-textMuted uppercase tracking-wider">Evidence Photo</span>
+              <span className="bg-primary/10 text-primary text-[8px] px-1.5 py-0.5 rounded-full font-bold">SENTRIA VERIFIED</span>
+            </div>
+            <img 
+              src={resolveImageUrl(complaint.media_urls[0])} 
+              alt="Evidence" 
+              className="w-full h-auto object-cover max-h-64"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+          </div>
+        )}
+
         {/* Complaint Card */}
         <div className="korean-card p-5 shadow-card">
           <div className="flex items-start justify-between gap-3 mb-4">
