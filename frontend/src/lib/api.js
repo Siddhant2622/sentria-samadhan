@@ -58,7 +58,7 @@ export async function fetchComplaint(id) {
     return fallbackComplaints.find((item) => item.id === id) || fallbackComplaints[0];
   }
   try {
-    const response = await fetch(`${API_BASE}/api/complaints/${id}`);
+    const response = await fetch(`${API_BASE}/api/complaints/${id}?t=${Date.now()}`, { cache: 'no-store' });
     if (!response.ok) throw new Error('Complaint not found');
     return await response.json();
   } catch (error) {
