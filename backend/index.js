@@ -109,12 +109,24 @@ function isSuperAdmin(email) {
   return SUPER_ADMIN_EMAILS.includes((email || '').toLowerCase().trim());
 }
 
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 app.use(cors({
-    origin: '*', // For the hackathon, we will allow all origins to ensure connectivity
+    origin: '*', 
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
+
+// Serve uploaded files statically with CORS enabled
+app.use('/uploads', cors(), express.static(uploadsDir, {
+  setHeaders: (res) => {
+    res.set('Access-Control-Allow-Origin', '*');
+  }
+}));
 
 // Request logging for debugging
 app.use((req, res, next) => {
@@ -215,10 +227,10 @@ async function generateWithRetry(contents, maxRetries = 2) {
 // Set up storage for image uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+    cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname)); // Appending extension
+    cb(null, Date.now() + path.extname(file.originalname));
   }
 });
 const upload = multer({
@@ -233,10 +245,7 @@ const upload = multer({
   }
 });
 
-// Create uploads directory if it doesn't exist
-if (!fs.existsSync('./uploads')){
-    fs.mkdirSync('./uploads');
-}
+// Directory creation moved up to uploadsDir definition
 
 // ── Rate Limiting (per-citizen, in-memory) ──────────────────────
 const rateLimitMap = new Map(); // key: IP → { count, resetAt }
@@ -1415,8 +1424,7 @@ app.post('/api/chat/assistant', async (req, res) => {
     }
 });
 
-// Serve uploaded files statically
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Static serving moved up to improve reliability and handle CORS
 
 // 7. Update Progress (Admin/Officer)
 app.put('/api/complaints/:id/progress', (req, res) => {

@@ -114,9 +114,16 @@ export function urgencyColor(urgency = '') {
 export function resolveImageUrl(url) {
   if (!url) return '';
   if (url.startsWith('http')) return url;
-  // Ensure no double slashes between API_BASE and the url
-  const cleanUrl = url.startsWith('/') ? url : `/${url}`;
-  return `${API_BASE}${cleanUrl}`;
+  if (url.startsWith('data:')) return url;
+  
+  // Ensure we have a clean path
+  const cleanPath = url.startsWith('/') ? url : `/${url}`;
+  
+  // If API_BASE is empty (dev mode), return relative path which Vite proxies
+  if (!API_BASE) return cleanPath;
+  
+  // Otherwise combine with API_BASE
+  return `${API_BASE}${cleanPath}`;
 }
 
 /** Open an address or lat/lng in Google Maps in a new tab */
