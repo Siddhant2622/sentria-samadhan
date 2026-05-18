@@ -44,7 +44,10 @@ export function AuthProvider({ children }) {
     // Restore demo/quick login from localStorage
     const stored = localStorage.getItem('sentria_user');
     if (stored) {
-      try { setUser(JSON.parse(stored)); } catch (_) {}
+      try { 
+        setUser(JSON.parse(stored)); 
+        setLoading(false); // Don't block app load if we have cached user
+      } catch (_) {}
     }
 
     if (!isConfigured || !auth) {
@@ -64,16 +67,18 @@ export function AuthProvider({ children }) {
           setIdToken(token);
         } catch (e) {
           console.error('Backend sync error:', e);
+        } finally {
+          setLoading(false);
         }
       } else {
-        const stored = localStorage.getItem('sentria_user');
-        if (!stored) {
+        const storedUser = localStorage.getItem('sentria_user');
+        if (!storedUser) {
           setFirebaseUser(null);
           setUser(null);
           setIdToken(null);
         }
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return unsubscribe;
@@ -213,8 +218,20 @@ export function AuthProvider({ children }) {
         try { recaptchaRef.current.clear(); } catch (_) {}
         recaptchaRef.current = null;
       }
-      const verifier = new RecaptchaVerifier(auth, recaptchaContainerId, { size: 'invisible' });
+
+      // Guarantee a completely fresh element to avoid "already rendered in this element" error
+      const uniqueId = `recaptcha-dynamic-${Date.now()}`;
+      let container = document.getElementById(recaptchaContainerId);
+      if (!container) {
+        container = document.createElement('div');
+        container.id = recaptchaContainerId;
+        document.body.appendChild(container);
+      }
+      container.innerHTML = `<div id="${uniqueId}"></div>`;
+
+      const verifier = new RecaptchaVerifier(auth, uniqueId, { size: 'invisible' });
       recaptchaRef.current = verifier;
+      
       const confirmation = await signInWithPhoneNumber(auth, phoneNumber, verifier);
       confirmationRef.current = confirmation;
       return { success: true };
@@ -249,7 +266,7 @@ export function AuthProvider({ children }) {
         // Create a mock Firebase user structure
         const mockFbUser = {
           uid: 'demo-otp-user-' + Date.now(),
-          phoneNumber: '+91' + (localStorage.getItem('sentira_phone_attempt') || '9942523385'),
+          phoneNumber: '+91' + (localStorage.getItem('sentria_phone_attempt') || '9942523385'),
           displayName: 'Citizen',
           getIdToken: async () => 'mock-id-token'
         };

@@ -53,7 +53,7 @@ export default function LiveTracking() {
 
       // Check feedback status if complaint is completed
       if (data?.progress_percentage === 100) {
-        const citizenId = localStorage.getItem('sentira_user_id') || 'demo-user'; // fallback for demo
+        const citizenId = localStorage.getItem('sentria_user_id') || 'demo-user'; // fallback for demo
         fetch(`${API_BASE}/api/feedback/check?citizen_id=${citizenId}&complaint_id=${id}`)
           .then(res => res.json())
           .then(check => setHasSubmittedFeedback(check.hasSubmitted))

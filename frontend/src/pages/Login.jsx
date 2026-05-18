@@ -60,7 +60,7 @@ export default function Login() {
     const result = await sendOtp(`+91${phone.trim()}`, 'recaptcha-container');
     setLoading(false);
     if (result.success) {
-      localStorage.setItem('sentira_phone_attempt', phone.trim());
+      localStorage.setItem('sentria_phone_attempt', phone.trim());
       if (result.isMock) {
         setError('Firebase billing is not enabled. Using Mock OTP mode for demo. Use code 123456.');
       }

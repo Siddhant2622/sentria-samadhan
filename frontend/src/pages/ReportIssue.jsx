@@ -40,6 +40,7 @@ export default function ReportIssue() {
   const [isTextReport, setIsTextReport] = useState(false);
   const [deptRatings, setDeptRatings] = useState({});
   const [address, setAddress] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetch(`${API_BASE}/api/superadmin/ratings`)
@@ -206,6 +207,8 @@ export default function ReportIssue() {
   };
 
   const handleSubmit = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     const finalData = {
       citizen_id: user?.id,
       title: analysis.title || 'Civic Issue',
@@ -232,6 +235,8 @@ export default function ReportIssue() {
       else alert(data.error || 'Submission failed');
     } catch (e) {
       alert('Network error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -377,8 +382,9 @@ export default function ReportIssue() {
            </div>
            
            <div className="p-6 bg-white border-t border-slate-100">
-              <button onClick={handleSubmit} className="w-full bg-primary text-white py-4 rounded-[2rem] font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-3 hover:bg-slate-900 transition-colors">
-                <CheckCircle size={20} /> Submit Final Report
+              <button disabled={isSubmitting} onClick={handleSubmit} className="w-full bg-primary text-white py-4 rounded-[2rem] font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-3 hover:bg-slate-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                {isSubmitting ? <Loader2 size={20} className="animate-spin" /> : <CheckCircle size={20} />}
+                {isSubmitting ? 'Submitting...' : 'Submit Final Report'}
               </button>
            </div>
         </div>
