@@ -3,17 +3,36 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import BottomNav from './components/BottomNav';
 import { useAuth } from './lib/AuthContext';
 
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const ReportIssue = lazy(() => import('./pages/ReportIssue'));
-const LiveTracking = lazy(() => import('./pages/LiveTracking'));
-const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
-const LocalAuthorityDashboard = lazy(() => import('./pages/LocalAuthorityDashboard'));
-const SuperAdminDashboard = lazy(() => import('./pages/SuperAdminDashboard'));
-const MapPage = lazy(() => import('./pages/MapPage'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage'));
-const Feedback = lazy(() => import('./pages/Feedback'));
-const PublicFeed = lazy(() => import('./pages/PublicFeed'));
-const Login = lazy(() => import('./pages/Login'));
+const lazyRetry = (componentImport) =>
+  lazy(async () => {
+    const pageHasAlreadyBeenForceRefreshed = JSON.parse(
+      window.sessionStorage.getItem('page-has-been-force-refreshed') || 'false'
+    );
+    try {
+      const component = await componentImport();
+      window.sessionStorage.setItem('page-has-been-force-refreshed', 'false');
+      return component;
+    } catch (error) {
+      if (!pageHasAlreadyBeenForceRefreshed) {
+        window.sessionStorage.setItem('page-has-been-force-refreshed', 'true');
+        window.location.reload();
+        return new Promise(() => {}); // Wait for reload
+      }
+      throw error;
+    }
+  });
+
+const Dashboard = lazyRetry(() => import('./pages/Dashboard'));
+const ReportIssue = lazyRetry(() => import('./pages/ReportIssue'));
+const LiveTracking = lazyRetry(() => import('./pages/LiveTracking'));
+const AdminDashboard = lazyRetry(() => import('./pages/AdminDashboard'));
+const LocalAuthorityDashboard = lazyRetry(() => import('./pages/LocalAuthorityDashboard'));
+const SuperAdminDashboard = lazyRetry(() => import('./pages/SuperAdminDashboard'));
+const MapPage = lazyRetry(() => import('./pages/MapPage'));
+const ProfilePage = lazyRetry(() => import('./pages/ProfilePage'));
+const Feedback = lazyRetry(() => import('./pages/Feedback'));
+const PublicFeed = lazyRetry(() => import('./pages/PublicFeed'));
+const Login = lazyRetry(() => import('./pages/Login'));
 
 // Full-screen branded splash shown while checking auth state
 function SplashScreen() {
