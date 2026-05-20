@@ -203,13 +203,29 @@ export default function AdminDashboard() {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-bold text-textMain mb-1 truncate">{c.title}</h3>
                     <div className="flex items-center text-xs text-textMuted mb-2">
-                  <span 
-                    className="flex items-center min-w-0 cursor-pointer group hover:text-primary transition-colors"
-                    onClick={(e) => { e.stopPropagation(); openInGoogleMaps(c.address, c.latitude, c.longitude); }}
-                  >
-                    <MapIcon size={11} className="mr-1 shrink-0 group-hover:text-primary group-hover:scale-125 transition-transform" />
-                    <span className="truncate group-hover:underline">{c.address || 'Location pending'}</span>
-                  </span>
+                  {c.latitude && c.longitude && (
+                    <span 
+                      className="flex items-center min-w-0 cursor-pointer group hover:text-primary transition-colors"
+                      onClick={(e) => { e.stopPropagation(); openInGoogleMaps(null, c.latitude, c.longitude); }}
+                    >
+                      <MapIcon size={11} className="mr-1 shrink-0 group-hover:text-primary group-hover:scale-125 transition-transform" />
+                      <span className="truncate group-hover:underline">GPS</span>
+                    </span>
+                  )}
+                  {c.latitude && c.longitude && c.address && <span className="mx-2">·</span>}
+                  {c.address && (
+                    <span 
+                      className="flex items-center min-w-0 cursor-pointer group hover:text-teal transition-colors"
+                      onClick={(e) => { e.stopPropagation(); openInGoogleMaps(c.address, null, null); }}
+                      title={c.address}
+                    >
+                      <MapIcon size={11} className="mr-1 shrink-0 group-hover:text-teal group-hover:scale-125 transition-transform" />
+                      <span className="truncate max-w-[100px] group-hover:underline">{c.address}</span>
+                    </span>
+                  )}
+                  {(!c.latitude && !c.longitude && !c.address) && (
+                     <span className="flex items-center min-w-0 text-textMuted"><MapIcon size={11} className="mr-1 shrink-0" />Pending</span>
+                  )}
                   <span className="mx-2">·</span>
                   <Clock size={11} className="mr-1 shrink-0" /> {formatRelativeTime(c.created_at)}
                 </div>

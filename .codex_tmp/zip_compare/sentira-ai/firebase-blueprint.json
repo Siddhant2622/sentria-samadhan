@@ -1,0 +1,95 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["citizen", "admin", "officer"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Complaint": {
+      "title": "Complaint",
+      "description": "A civic issue reported by a citizen",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "citizenId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "urgency": { "type": "string", "enum": ["low", "medium", "high", "emergency"] },
+        "severity": { "type": "number" },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" },
+            "address": { "type": "string" },
+            "landmarks": { "type": "array", "items": { "type": "string" } },
+            "ward": { "type": "string" },
+            "zone": { "type": "string" }
+          }
+        },
+        "media": {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "enum": ["image", "video"] },
+            "url": { "type": "string" }
+          }
+        },
+        "status": { "type": "string", "enum": ["submitted", "assigned", "in_progress", "completed", "delayed", "escalated"] },
+        "officerId": { "type": "string" },
+        "departmentId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "expectedCompletionDate": { "type": "string", "format": "date-time" }
+      },
+      "required": ["citizenId", "title", "status", "createdAt"]
+    },
+    "Department": {
+      "title": "Department",
+      "description": "Government department details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "responsibleFor": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["name"]
+    },
+    "AppVote": {
+      "title": "Vote",
+      "description": "Upvote on a complaint",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "List of user profiles"
+    },
+    "/complaints/{complaintId}": {
+      "schema": "Complaint",
+      "description": "List of grievances"
+    },
+    "/departments/{departmentId}": {
+      "schema": "Department",
+      "description": "List of government departments"
+    },
+    "/complaints/{complaintId}/votes/{userId}": {
+      "schema": "AppVote",
+      "description": "Votes for a complaint"
+    }
+  }
+}

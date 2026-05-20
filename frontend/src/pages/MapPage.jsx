@@ -83,10 +83,29 @@ export default function MapPage() {
             )}
             <div className="min-w-0 flex-1 cursor-pointer" onClick={() => navigate(`/track/${item.id}`)}>
               <p className="font-semibold truncate">{item.title}</p>
-              <p 
-                className="text-xs text-textMuted truncate hover:text-primary hover:underline cursor-pointer transition-colors"
-                onClick={(e) => { e.stopPropagation(); openInGoogleMaps(item.address, item.latitude, item.longitude); }}
-              >{item.address || 'Location pending'}</p>
+              <div className="flex flex-col gap-1 mt-1">
+                {item.latitude && item.longitude && (
+                  <p 
+                    className="text-xs text-textMuted truncate hover:text-primary hover:underline cursor-pointer transition-colors flex items-center"
+                    onClick={(e) => { e.stopPropagation(); openInGoogleMaps(null, item.latitude, item.longitude); }}
+                  >
+                    <MapPin size={10} className="mr-1 shrink-0 inline" /> GPS Location
+                  </p>
+                )}
+                {item.address && (
+                  <p 
+                    className="text-xs text-textMuted truncate hover:text-teal hover:underline cursor-pointer transition-colors flex items-center"
+                    onClick={(e) => { e.stopPropagation(); openInGoogleMaps(item.address, null, null); }}
+                  >
+                    <MapPin size={10} className="mr-1 shrink-0 inline" /> {item.address}
+                  </p>
+                )}
+                {(!item.latitude && !item.longitude && !item.address) && (
+                  <p className="text-xs text-textMuted truncate flex items-center">
+                    <MapPin size={10} className="mr-1 shrink-0 inline" /> Location pending
+                  </p>
+                )}
+              </div>
             </div>
             <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase ${urgencyColor(item.urgency_level)}`}>
               {item.urgency_level || 'Medium'}

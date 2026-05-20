@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CivicResolve - Live Tracking</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary": "#000000",
+                      "inverse-primary": "#b9c7e4",
+                      "surface-container-low": "#f5f3f5",
+                      "surface-dim": "#dbd9db",
+                      "secondary-fixed": "#d8e2ff",
+                      "surface-container": "#efedef",
+                      "on-tertiary-fixed": "#2b1701",
+                      "primary-fixed-dim": "#b9c7e4",
+                      "on-surface": "#1b1b1d",
+                      "on-primary": "#ffffff",
+                      "error": "#ba1a1a",
+                      "tertiary-container": "#2b1701",
+                      "on-tertiary-fixed-variant": "#5d4124",
+                      "tertiary-fixed": "#ffdcbd",
+                      "on-primary-fixed": "#0d1c32",
+                      "surface-tint": "#515f78",
+                      "surface": "#fbf9fb",
+                      "on-error": "#ffffff",
+                      "background": "#fbf9fb",
+                      "on-tertiary": "#ffffff",
+                      "inverse-surface": "#303032",
+                      "secondary": "#0059bb",
+                      "outline-variant": "#c5c6cd",
+                      "primary-container": "#0d1c32",
+                      "inverse-on-surface": "#f2f0f2",
+                      "on-secondary-container": "#fefcff",
+                      "error-container": "#ffdad6",
+                      "on-surface-variant": "#44474d",
+                      "primary-fixed": "#d6e3ff",
+                      "primary": "#000000",
+                      "on-secondary": "#ffffff",
+                      "tertiary-fixed-dim": "#e7bf99",
+                      "surface-container-highest": "#e4e2e4",
+                      "surface-container-lowest": "#ffffff",
+                      "on-secondary-fixed": "#001a41",
+                      "on-secondary-fixed-variant": "#004493",
+                      "surface-variant": "#e4e2e4",
+                      "secondary-container": "#0070ea",
+                      "on-primary-fixed-variant": "#39475f",
+                      "outline": "#75777e",
+                      "surface-container-high": "#eae7ea",
+                      "surface-bright": "#fbf9fb",
+                      "secondary-fixed-dim": "#adc7ff",
+                      "on-tertiary-container": "#9f7d5b",
+                      "on-background": "#1b1b1d",
+                      "on-error-container": "#93000a",
+                      "on-primary-container": "#76849f"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-mobile": "20px",
+                      "card-padding": "16px",
+                      "gutter": "16px",
+                      "stack-gap": "12px",
+                      "base": "4px"
+              },
+              "fontFamily": {
+                      "body-md": ["Inter"],
+                      "display-lg": ["Inter"],
+                      "title-sm": ["Inter"],
+                      "label-caps": ["Inter"],
+                      "body-sm": ["Inter"],
+                      "headline-md": ["Inter"]
+              },
+              "fontSize": {
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "display-lg": ["34px", {"lineHeight": "42px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md antialiased selection:bg-secondary-fixed selection:text-on-secondary-fixed min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile h-16 bg-surface/80 dark:bg-surface-container/80 backdrop-blur-xl border-b border-on-surface/5">
+<button class="w-10 h-10 flex items-center justify-center text-on-surface dark:text-on-surface hover:bg-on-surface/5 transition-colors rounded-full active:scale-95 duration-100">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-headline-md text-headline-md tracking-tight text-primary dark:text-on-primary-fixed">CivicResolve</h1>
+<button class="w-10 h-10 flex items-center justify-center text-on-surface dark:text-on-surface hover:bg-on-surface/5 transition-colors rounded-full active:scale-95 duration-100 relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+</header>
+<!-- Main Canvas -->
+<main class="pt-24 pb-32 px-margin-mobile flex flex-col gap-stack-gap">
+<!-- Header Info -->
+<div class="flex flex-col gap-1 mb-2">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-wider">Pothole Repair</span>
+<span class="font-label-caps text-label-caps bg-secondary-fixed text-on-secondary-fixed px-2 py-1 rounded-full">In Progress</span>
+</div>
+<h2 class="font-display-lg text-display-lg text-on-surface">Tracking #GRV-8492</h2>
+</div>
+<!-- Map Snippet -->
+<div class="w-full h-48 rounded-xl overflow-hidden relative shadow-sm border border-outline-variant/30 bg-surface-container-low">
+<img alt="Live tracking map" class="w-full h-full object-cover opacity-80" data-alt="A stylized, modern digital map showing a city grid from a top-down perspective. The map uses a clean, light-mode color palette with soft whites, pale greys, and subtle blue highlights indicating roads. The aesthetic is minimal, high-tech, and precise, resembling a premium navigation interface." data-location="Downtown City Grid" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDC8cfbWY3KAShAvOAgR0HOw7EgU1sclga2R2NKEuujNMhPXJ3qaal-hg6oBtfJFKGpnFZwV7SfGnV_QY_dQIvSbrvNU7lGARJk9GbRN6lnexYqYfk9g0wx2VNNN0XdVaRaJPBgVbkzW60H0xnlbbxlLkYlc1oipwZtA0uiW4HQWFzijqPAHc15Su6QQtd7l02f9PH7NThjLqJA4hUqo3RvMuIlQmDm-859hq6_QIa8kNMKlGRKLRtW8E_g5b3zABTVNbAEAcz45u7H"/>
+<!-- Map Overlays -->
+<div class="absolute inset-0 flex items-center justify-center">
+<!-- Destination Pin -->
+<div class="absolute top-[30%] left-[60%] flex flex-col items-center">
+<div class="w-8 h-8 bg-error text-on-error rounded-full flex items-center justify-center shadow-lg border-2 border-surface">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+</div>
+<!-- Team Pin -->
+<div class="absolute top-[60%] left-[40%] flex flex-col items-center">
+<div class="w-10 h-10 bg-secondary text-on-secondary rounded-full flex items-center justify-center shadow-lg border-2 border-surface">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">local_shipping</span>
+</div>
+<div class="mt-1 bg-surface/90 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] font-bold text-on-surface shadow-sm border border-on-surface/5">2 min away</div>
+</div>
+<!-- Simple SVG Route Line (Decorative) -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none" preserveaspectratio="none" viewbox="0 0 100 100">
+<path class="text-secondary opacity-60" d="M 40 60 Q 50 40 60 30" fill="none" stroke="currentColor" stroke-dasharray="4 4" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<!-- Expected Completion Card -->
+<div class="bg-surface/80 backdrop-blur-xl border border-on-surface/5 rounded-xl p-card-padding flex justify-between items-center shadow-sm">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Expected Completion</span>
+<span class="font-title-sm text-title-sm text-on-surface">May 14, 5:00 PM</span>
+</div>
+<div class="text-right flex flex-col items-end">
+<span class="font-label-caps text-label-caps text-secondary bg-secondary-fixed/30 px-2 py-1 rounded-md">In 4 hours</span>
+</div>
+</div>
+<!-- Vertical Animated Timeline -->
+<div class="bg-surface border border-on-surface/5 rounded-xl p-card-padding shadow-sm mt-2 relative">
+<h3 class="font-title-sm text-title-sm text-on-surface mb-6">Status Details</h3>
+<div class="relative ml-2">
+<!-- Vertical Track Line -->
+<div class="absolute left-[11px] top-2 bottom-6 w-[2px] bg-surface-container-high rounded-full"></div>
+<!-- Active Track Line Fill -->
+<div class="absolute left-[11px] top-2 h-[50%] w-[2px] bg-secondary rounded-full"></div>
+<!-- Step 1: Done -->
+<div class="flex items-start gap-4 relative z-10 pb-6">
+<div class="w-6 h-6 rounded-full bg-secondary text-on-secondary flex items-center justify-center shrink-0 mt-0.5 border-2 border-surface">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<div class="flex flex-col">
+<span class="font-title-sm text-title-sm text-on-surface">Complaint Submitted</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">May 14, 08:30 AM</span>
+</div>
+</div>
+<!-- Step 2: Done -->
+<div class="flex items-start gap-4 relative z-10 pb-6">
+<div class="w-6 h-6 rounded-full bg-secondary text-on-secondary flex items-center justify-center shrink-0 mt-0.5 border-2 border-surface">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<div class="flex flex-col">
+<span class="font-title-sm text-title-sm text-on-surface">Officer Assigned</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">May 14, 09:15 AM</span>
+</div>
+</div>
+<!-- Step 3: Active (Pulsing) -->
+<div class="flex items-start gap-4 relative z-10 pb-6">
+<div class="w-6 h-6 rounded-full bg-surface border-2 border-secondary flex items-center justify-center shrink-0 mt-0.5 relative">
+<div class="w-2.5 h-2.5 rounded-full bg-secondary"></div>
+<!-- Pulse effect ring simulated statically for structural representation -->
+<div class="absolute inset-0 rounded-full border border-secondary opacity-40 scale-150"></div>
+</div>
+<div class="flex flex-col">
+<span class="font-title-sm text-title-sm text-secondary">Team Dispatched</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Arriving in 2 mins</span>
+</div>
+</div>
+<!-- Step 4: Pending -->
+<div class="flex items-start gap-4 relative z-10">
+<div class="w-6 h-6 rounded-full bg-surface border-2 border-outline-variant flex items-center justify-center shrink-0 mt-0.5">
+</div>
+<div class="flex flex-col opacity-50">
+<span class="font-title-sm text-title-sm text-on-surface">Work Started</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Pending</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Officer Profile Card -->
+<div class="bg-surface/90 backdrop-blur-xl border border-on-surface/5 rounded-xl p-card-padding flex items-center justify-between shadow-sm mt-2">
+<div class="flex items-center gap-4">
+<img alt="Officer Profile" class="w-12 h-12 rounded-full object-cover border border-outline-variant/20" data-alt="Close up portrait of a professional female civic worker in a neat dark blue uniform, smiling gently. The lighting is bright and soft, creating a clean, high-key modern portrait suitable for an app interface. The background is a blurred bright outdoor setting. Subtle cool tones match a trustworthiness theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIDEzJToZF-DQecl0AyMYdVMju_rYzLdvjAT6aFe9vtxqqziDYtMrVCIA1AV1aqcsUfRhWjF8844TLccIzVZSmdYgvdnqdo7K3BMFauBMELTQ9LRQpeCpWMYMlJJ7SsYeKdhkBUuYiYsJ8YeN0YEdsiL1Q1qpFEyW1Pm-4CX9x8gha8RqECHy6IOTkGRsZrUg4MM30s2muFkxjIgjz8mWu2a2ybw1WKW42OW9igPiNkHr_d13oybG-8T_LeGEX5QIVB937cuMSkBKf"/>
+<div class="flex flex-col">
+<span class="font-title-sm text-title-sm text-on-surface">Officer Sarah J.</span>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px] text-tertiary-fixed-dim" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-caps text-label-caps">4.8 Rating</span>
+</div>
+</div>
+</div>
+<button class="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center hover:bg-secondary hover:text-on-secondary transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">call</span>
+</button>
+</div>
+<!-- Escalate Button (Inactive State) -->
+<button class="w-full py-3 rounded-full border-2 border-outline-variant text-on-surface-variant font-title-sm text-title-sm text-center flex items-center justify-center gap-2 mt-4 opacity-70 cursor-not-allowed">
+<span class="material-symbols-outlined" data-icon="flag">flag</span>
+            Escalate Issue
+        </button>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-margin-mobile pb-safe h-20 bg-surface/80 dark:bg-surface-container/80 backdrop-blur-xl rounded-t-xl border-t border-on-surface/5 shadow-lg">
+<!-- Home (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant opacity-70 hover:opacity-100 transition-opacity w-16 h-14" href="#">
+<span class="material-symbols-outlined text-[24px]" data-icon="home_app_fill">home_filled</span>
+<span class="font-label-caps text-label-caps mt-1">Home</span>
+</a>
+<!-- Track (Active) -->
+<a class="flex flex-col items-center justify-center text-secondary dark:text-secondary-fixed-dim bg-secondary-fixed/20 rounded-xl px-4 py-1 active:scale-90 duration-150 ease-out w-16 h-14" href="#">
+<span class="material-symbols-outlined text-[24px]" data-icon="query_stats" style="font-variation-settings: 'FILL' 1;">query_stats</span>
+<span class="font-label-caps text-label-caps mt-1 font-bold">Track</span>
+</a>
+<!-- Reports (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant opacity-70 hover:opacity-100 transition-opacity w-16 h-14" href="#">
+<span class="material-symbols-outlined text-[24px]" data-icon="history_edu">history_edu</span>
+<span class="font-label-caps text-label-caps mt-1">Reports</span>
+</a>
+<!-- Profile (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant opacity-70 hover:opacity-100 transition-opacity w-16 h-14" href="#">
+<span class="material-symbols-outlined text-[24px]" data-icon="person">person</span>
+<span class="font-label-caps text-label-caps mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

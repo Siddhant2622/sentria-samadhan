@@ -171,13 +171,33 @@ export default function LiveTracking() {
           </div>
           <div className="mt-1 bg-surface/90 backdrop-blur-md px-2 py-0.5 rounded-md border border-black/[0.06] text-[10px] font-bold">En Route</div>
         </div>
-        <div 
-          className="absolute bottom-3 left-3 right-3 bg-surface/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-black/[0.06] text-xs flex items-center shadow-card cursor-pointer hover:border-primary/30 hover:text-primary transition-all group"
-          onClick={() => openInGoogleMaps(complaint.address, complaint.latitude, complaint.longitude)}
-        >
-          <MapPin size={12} className="mr-2 text-teal shrink-0 group-hover:text-primary group-hover:scale-125 transition-transform" />
-          <span className="truncate group-hover:underline">{complaint.address || 'Location pending'}</span>
-          <span className="ml-auto text-[10px] text-primary font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pl-2">Open in Maps →</span>
+        <div className="absolute bottom-3 left-3 right-3 flex flex-col gap-2">
+          {complaint.latitude && complaint.longitude && (
+            <div 
+              className="bg-surface/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-black/[0.06] text-xs flex items-center shadow-card cursor-pointer hover:border-primary/30 hover:text-primary transition-all group"
+              onClick={() => openInGoogleMaps(null, complaint.latitude, complaint.longitude)}
+            >
+              <MapPin size={12} className="mr-2 text-primary shrink-0 group-hover:scale-125 transition-transform" />
+              <span className="truncate group-hover:underline">GPS Location (Auto-fetched)</span>
+              <span className="ml-auto text-[10px] text-primary font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pl-2">Open Maps →</span>
+            </div>
+          )}
+          {complaint.address && (
+            <div 
+              className="bg-surface/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-black/[0.06] text-xs flex items-center shadow-card cursor-pointer hover:border-teal/30 hover:text-teal transition-all group"
+              onClick={() => openInGoogleMaps(complaint.address, null, null)}
+            >
+              <MapPin size={12} className="mr-2 text-teal shrink-0 group-hover:scale-125 transition-transform" />
+              <span className="truncate group-hover:underline">Citizen Added: {complaint.address}</span>
+              <span className="ml-auto text-[10px] text-teal font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pl-2">Open Maps →</span>
+            </div>
+          )}
+          {(!complaint.latitude && !complaint.longitude && !complaint.address) && (
+            <div className="bg-surface/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-black/[0.06] text-xs flex items-center shadow-card text-textMuted">
+              <MapPin size={12} className="mr-2 shrink-0" />
+              <span className="truncate">Location pending</span>
+            </div>
+          )}
         </div>
       </div>
 
