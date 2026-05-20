@@ -8,7 +8,7 @@ import { useAuth } from '../lib/AuthContext';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'board');
   const [complaints, setComplaints] = useState([]);
@@ -35,7 +35,8 @@ export default function AdminDashboard() {
 
   const fetchOfficers = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/admin/officers`);
+      const districtQuery = user?.district ? `?district=${encodeURIComponent(user.district)}` : '';
+      const res = await fetch(`${API_BASE}/api/admin/officers${districtQuery}`);
       const data = await res.json();
       setUsers(Array.isArray(data) ? data : []);
       
@@ -50,9 +51,10 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    fetchComplaints().then(setComplaints);
+    const districtQuery = user?.district ? `?district=${encodeURIComponent(user.district)}` : '';
+    fetchComplaints(districtQuery).then(setComplaints);
     fetchOfficers();
-  }, []);
+  }, [user?.district]);
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -102,7 +104,7 @@ export default function AdminDashboard() {
             <img src="/logo.png" className="w-11 h-11 object-contain" alt="Logo" />
             <div>
               <h1 className="font-bold text-sm leading-tight font-serif">Authority Portal</h1>
-              <p className="text-[10px] text-textMuted uppercase tracking-wider">Sentria Samadhan Command</p>
+              <p className="text-[10px] text-textMuted uppercase tracking-wider">{user?.district || 'All Districts'} · Command Center</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -408,7 +410,7 @@ export default function AdminDashboard() {
                     fetch(url, {
                       method,
                       headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ name: newAuthority.name, email: newAuthority.email, department: newAuthority.department, phone: newAuthority.phone })
+                      body: JSON.stringify({ name: newAuthority.name, email: newAuthority.email, department: newAuthority.department, phone: newAuthority.phone, district: user?.district || '' })
                     })
                     .then(res => res.json())
                     .then(data => {

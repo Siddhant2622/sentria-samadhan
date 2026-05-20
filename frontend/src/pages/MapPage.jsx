@@ -3,14 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Layers, MapPin, Navigation, ShieldAlert } from 'lucide-react';
 import { fetchComplaints, urgencyColor, openInGoogleMaps, resolveImageUrl } from '../lib/api';
 import { API_BASE } from '../lib/config';
+import { useAuth } from '../lib/AuthContext';
 
 export default function MapPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [complaints, setComplaints] = useState([]);
 
   useEffect(() => {
-    fetchComplaints().then(setComplaints);
-  }, []);
+    const districtQuery = user?.district ? `?district=${encodeURIComponent(user.district)}` : '';
+    fetchComplaints(districtQuery).then(setComplaints);
+  }, [user?.district]);
 
   return (
     <div className="min-h-screen bg-background pb-24">

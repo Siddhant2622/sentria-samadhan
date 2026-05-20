@@ -1518,7 +1518,18 @@ app.put('/api/users/:id/district', (req, res) => {
 
 // Officers Management
 app.get('/api/admin/officers', (req, res) => {
-    db.all("SELECT id, name, email, phone, department, role, district, created_at FROM users WHERE role = 'Officer' ORDER BY created_at DESC", [], (err, rows) => {
+    const districtFilter = req.query.district;
+    let query = "SELECT id, name, email, phone, department, role, district, created_at FROM users WHERE role = 'Officer'";
+    const params = [];
+
+    if (districtFilter) {
+      query += " AND district = ?";
+      params.push(districtFilter);
+    }
+
+    query += " ORDER BY created_at DESC";
+
+    db.all(query, params, (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
     });
