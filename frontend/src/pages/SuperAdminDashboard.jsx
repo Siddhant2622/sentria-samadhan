@@ -96,10 +96,13 @@ export default function SuperAdminDashboard() {
     setAddLoading(true);
     setAddError('');
     try {
-      const res = await fetch(`${API_BASE}/api/district-admins`, {
+      const url = editingAdmin
+        ? `${API_BASE}/api/district-admins/${editingAdmin.id}`
+        : `${API_BASE}/api/district-admins`;
+      const res = await fetch(url, {
         method: editingAdmin ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingAdmin ? { ...newAdmin, id: editingAdmin.id } : newAdmin),
+        body: JSON.stringify(newAdmin),
       });
       const data = await res.json();
       if (res.ok) {

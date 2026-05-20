@@ -109,7 +109,9 @@ function isSuperAdmin(email) {
   return SUPER_ADMIN_EMAILS.includes((email || '').toLowerCase().trim());
 }
 
-const uploadsDir = path.join(__dirname, 'uploads');
+const uploadsDir = process.env.DB_PATH
+  ? path.join(path.dirname(process.env.DB_PATH), 'uploads')
+  : path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }

@@ -7,9 +7,15 @@ services:
     buildCommand: npm install --build-from-source
     startCommand: npm start
     autoDeploy: true
+    disk:
+      name: sentria-data
+      mountPath: /data
+      sizeGB: 1
     envVars:
       - key: PORT
         value: 3001
+      - key: DB_PATH
+        value: /data/sentria.db
       - key: GEMINI_API_KEY
         sync: false
 
