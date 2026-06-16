@@ -776,7 +776,7 @@ app.post('/api/complaints/analyze', upload.single('image'), handleUploadError, a
     // ── Rate limiting ──────────────────────────────────────────
     const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
     if (!checkRateLimit(clientIp)) {
-      fs.unlink(path.join(__dirname, 'uploads', req.file.filename), () => {});
+      fs.unlink(path.join(uploadsDir, req.file.filename), () => {});
       return res.status(429).json({
         success: false,
         code: 'RATE_LIMITED',
@@ -784,7 +784,7 @@ app.post('/api/complaints/analyze', upload.single('image'), handleUploadError, a
       });
     }
 
-    const filePath = path.join(__dirname, 'uploads', req.file.filename);
+    const filePath = path.join(uploadsDir, req.file.filename);
     const mimeType = req.file.mimetype;
 
     // ── Duplicate image detection ──────────────────────────────
@@ -1053,6 +1053,76 @@ Respond helpfully and concisely (max 2 sentences). Ask for specific details that
           success: false, 
           reply: isQuota ? 'I am temporarily busy. Please try again in a minute.' : 'Sorry, I could not process your message. Please try again.',
           error: 'Chat Assistant failed'
+        });
+    }
+});
+
+// Voice Chat Assistant Route
+app.post('/api/chat/voice-assistant', async (req, res) => {
+    const { history, userMessage, currentState, selectedLanguage } = req.body;
+    
+    if(!ai) {
+        return res.status(503).json({ success: false, error: 'AI system is not configured. Add GEMINI_API_KEY in backend/.env' });
+    }
+
+    try {
+        const historyText = (history || []).map(h => `${h.sender === 'user' ? 'Citizen' : 'AI'}: ${h.text}`).join('\n');
+        
+        const prompt = `
+You are Sentria AI Voice Grievance Assistant. Your job is to help a citizen file a civic complaint step-by-step through a voice conversation.
+You can understand and reply in English, Hindi, Bengali, Telugu, Marathi, Tamil, Gujarati, Urdu, Kannada, Malayalam, Odia, Punjabi, Assamese, and other Indian languages.
+Respond to the citizen in the SAME language they spoke or expressed.
+
+We need to collect/confirm the following information from the citizen:
+1. The civic issue itself (e.g. pothole, broken streetlight, garbage pile) -> to fill "title", "description", and "category".
+2. The location/address or nearby landmark -> to fill "address".
+3. A photo of the issue -> ask them to click or upload a photo of the issue.
+
+Guidelines for step-by-step collection:
+- If you don't know what the civic issue is yet, ask them to describe the problem.
+- If you know the issue, check if they mentioned the location. If not, ask where it is located.
+- Once you have the issue and location, if they haven't uploaded/attached a photo yet, ask them to upload or take a photo of the issue using the button on their screen. Say: "Please click the photo button on your screen to capture or upload a picture of the issue."
+- If they say they cannot provide a photo, respect it and proceed.
+- Keep your replies extremely short and conversational (1-2 sentences maximum) because this is a voice-based interface.
+- Be extremely polite, empathetic, and professional.
+
+Input parameters:
+- User selected language: ${selectedLanguage || 'en'}
+- Citizen just said: "${userMessage}"
+- Conversation history:
+${historyText}
+- Current complaint fields state:
+${JSON.stringify(currentState)}
+
+Your output MUST be a valid JSON object only. Do not include markdown code fence formatting. Return exactly this JSON structure:
+{
+  "reply": "Your conversational response in the user's language (max 2 sentences). Keep it natural for voice read-out.",
+  "extractedFields": {
+    "title": "A short 3-6 word title in English representing the issue (e.g., 'Broken Streetlight', 'Pothole on Main Road')",
+    "description": "A detailed description in English based on what the user said",
+    "category": "Roads|Sanitation|Electricity|Water|Traffic|Environment|Fire|Other (Must match to one of these keys based on issue type)",
+    "urgency_level": "Low|Medium|High|Emergency (Infer based on context, e.g. open manhole or live wires are Emergency/High)",
+    "address": "Extracted address or landmark if mentioned, otherwise retain the previous value"
+  },
+  "missingField": "issue|address|photo|none",
+  "readyToSubmit": true_or_false (Set to true ONLY when you have the issue description, location/address, and they have attached/uploaded a photo OR explicitly said they don't have one)
+}
+`;
+
+        const response = await generateWithRetry(prompt);
+        let textResult = response.text;
+        
+        // Extract JSON from text result
+        const parsedResult = extractJson(textResult);
+        res.json({ success: true, ...parsedResult });
+    } catch (error) {
+        console.error("Voice Assistant Error:", error.message?.substring(0, 200));
+        const isQuota = (error.message || '').includes('429') || (error.message || '').includes('quota');
+        res.status(isQuota ? 429 : 500).json({ 
+          success: false, 
+          reply: isQuota ? 'System is busy. Please try again.' : 'Sorry, something went wrong. Let\'s try again.',
+          error: 'Voice Assistant failed',
+          details: error.message
         });
     }
 });

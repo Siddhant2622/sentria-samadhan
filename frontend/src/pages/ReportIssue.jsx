@@ -273,6 +273,10 @@ export default function ReportIssue() {
                 <p className="text-xs text-slate-400 mt-1">Upload existing photos</p>
               </div>
             </button>
+            <button onClick={() => navigate('/voice-report')} className="py-5 bg-gradient-to-r from-primary to-teal text-white rounded-[2rem] flex items-center justify-center gap-3 font-bold hover:opacity-95 transition-opacity shadow-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+              Report by Talking (Voice AI)
+            </button>
             <button onClick={handleManualReport} className="py-5 bg-slate-800 text-white rounded-[2rem] flex items-center justify-center gap-3 font-bold hover:bg-slate-900 transition-colors shadow-lg">
               <PlusCircle size={20} /> Report without photo
             </button>

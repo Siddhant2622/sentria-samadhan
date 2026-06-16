@@ -195,6 +195,22 @@ export default function Dashboard() {
         </motion.button>
       </div>
 
+      <div className="px-6 mt-4">
+        <motion.button whileTap={{ scale: 0.98 }} onClick={() => navigate('/voice-report')}
+          className="w-full bg-slate-800 text-white rounded-3xl p-5 shadow-[0_8px_25px_rgba(0,0,0,0.1)] relative overflow-hidden text-left border border-slate-700/80">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-xl translate-x-5 -translate-y-5" />
+          <div className="relative z-10 flex items-center gap-4">
+            <div className="bg-primary/25 p-3 rounded-2xl text-primary flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-white mb-0.5">Report by Talking 🎙</h2>
+              <p className="text-xs text-slate-300">File a complaint step-by-step using voice in any language</p>
+            </div>
+          </div>
+        </motion.button>
+      </div>
+
       {(user?.role === 'Admin' || user?.role === 'Officer') && (
         <div className="px-6 mt-4">
           <button onClick={() => navigate('/admin')} className="w-full korean-card p-4 flex items-center gap-3 text-primary font-semibold border-primary/20">

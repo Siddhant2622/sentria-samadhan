@@ -33,6 +33,7 @@ const ProfilePage = lazyRetry(() => import('./pages/ProfilePage'));
 const Feedback = lazyRetry(() => import('./pages/Feedback'));
 const PublicFeed = lazyRetry(() => import('./pages/PublicFeed'));
 const Login = lazyRetry(() => import('./pages/Login'));
+const VoiceReport = lazyRetry(() => import('./pages/VoiceReport'));
 
 // Full-screen branded splash shown while checking auth state
 function SplashScreen() {
@@ -125,6 +126,7 @@ function AppShell() {
           <Route path="/" element={<RootRedirect />} />
           <Route path="/dashboard" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><Dashboard /></Suspense></ProtectedRoute>} />
           <Route path="/report" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><ReportIssue /></Suspense></ProtectedRoute>} />
+          <Route path="/voice-report" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><VoiceReport /></Suspense></ProtectedRoute>} />
           <Route path="/track/:id" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><LiveTracking /></Suspense></ProtectedRoute>} />
           <Route path="/map" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><MapPage /></Suspense></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><ProfilePage /></Suspense></ProtectedRoute>} />
