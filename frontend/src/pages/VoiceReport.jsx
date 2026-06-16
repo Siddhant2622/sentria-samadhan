@@ -103,8 +103,8 @@ export default function VoiceReport() {
       };
 
       rec.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
-        if (event.error !== 'no-speech') {
+        console.log('Speech recognition error:', event.error);
+        if (event.error !== 'no-speech' && event.error !== 'aborted') {
           setErrorMsg('माइक एक्सेस या स्पीच रिकग्निशन में समस्या है।');
         }
         setIsListening(false);
