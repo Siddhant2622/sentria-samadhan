@@ -1,34 +1,45 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mic, MicOff, Volume2, VolumeX, Camera, Image as ImageIcon, CheckCircle, AlertTriangle, Loader2, Sparkles, Send, MapPin, Building2, Eye, ShieldAlert, Phone, PhoneOff, Compass } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useRef, useEffect } from 'react';
 import { API_BASE } from '../lib/config';
+import { useNavigate } from 'react-router-dom';
+import { Mic, Globe, Image as ImageIcon, Camera, CheckCircle, ArrowLeft, Loader2, Sparkles } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext';
+import { motion } from 'framer-motion';
 
-const CIVIC_CATEGORIES_LIST = {
-  Roads: { department_id: 'PWD', authority_name: 'Public Works Department' },
-  Sanitation: { department_id: 'SANITATION', authority_name: 'Municipal Sanitation Department' },
-  Electricity: { department_id: 'ELECTRICITY_BOARD', authority_name: 'Electricity Board' },
-  Water: { department_id: 'WATER_WORKS', authority_name: 'Water Works Department' },
-  Traffic: { department_id: 'TRAFFIC_POLICE', authority_name: 'Traffic Police' },
-  Environment: { department_id: 'ENVIRONMENT', authority_name: 'Environment Department' },
-  Fire: { department_id: 'FIRE_DEPT', authority_name: 'Fire & Emergency Services' },
-  Other: { department_id: 'MUNICIPAL_CORP', authority_name: 'Municipal Corporation' }
+const LANGUAGES = [
+  { code: 'hi-IN', label: 'हिंदी', name: 'Hindi' },
+  { code: 'mr-IN', label: 'मराठी', name: 'Marathi' },
+  { code: 'ta-IN', label: 'தமிழ்', name: 'Tamil' },
+  { code: 'te-IN', label: 'తెలుగు', name: 'Telugu' },
+  { code: 'kn-IN', label: 'ಕನ್ನಡ', name: 'Kannada' },
+  { code: 'ml-IN', label: 'മലയാളം', name: 'Malayalam' },
+  { code: 'bn-IN', label: 'বাংলা', name: 'Bengali' },
+  { code: 'gu-IN', label: 'ગુજરાતી', name: 'Gujarati' },
+  { code: 'pa-IN', label: 'ਪੰਜਾਬੀ', name: 'Punjabi' },
+  { code: 'en-IN', label: 'English', name: 'English' }
+];
+
+const GREETINGS = {
+  'hi-IN': 'नमस्ते! आपकी क्या समस्या है?',
+  'mr-IN': 'नमस्कार! तुमची काय समस्या आहे?',
+  'ta-IN': 'வணக்கம்! உங்கள் பிரச்சனை என்ன?',
+  'te-IN': 'నమస్కారం! మీ సమస్య ఏమిటి?',
+  'kn-IN': 'ನಮಸ್ಕಾರ! ನಿಮ್ಮ ಸಮಸ್ಯೆ ಏನು?',
+  'ml-IN': 'നമസ്കാരം! നിങ്ങളുടെ പ്രശ്നം എന്താണ്?',
+  'bn-IN': 'নমস্কার! আপনার সমস্যা কি?',
+  'gu-IN': 'નમસ્તે! તમારી સમસ્યા શું છે?',
+  'pa-IN': 'ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ! ਤੁਹਾਡੀ ਕੀ ਸਮੱਸਿਆ ਹੈ?',
+  'en-IN': 'Hello! What is your problem?'
 };
 
-const SUPPORTED_LANGUAGES = [
-  { code: 'hi-IN', display: 'हिन्दी', short: 'hi' },
-  { code: 'en-IN', display: 'English', short: 'en' },
-  { code: 'bn-IN', display: 'বাংলা', short: 'bn' },
-  { code: 'te-IN', display: 'తెలుగు', short: 'te' },
-  { code: 'mr-IN', display: 'मराठी', short: 'mr' },
-  { code: 'ta-IN', display: 'தமிழ்', short: 'ta' },
-  { code: 'gu-IN', display: 'ગુજરાતી', short: 'gu' },
-  { code: 'ur-IN', display: 'اردو', short: 'ur' },
-  { code: 'kn-IN', display: 'ಕನ್ನಡ', short: 'kn' },
-  { code: 'ml-IN', display: 'മലയാളം', short: 'ml' },
-  { code: 'pa-IN', display: 'ਪੰਜਾਬੀ', short: 'pa' }
-];
+const CIVIC_CATEGORIES = {
+  Roads: { department_id: 'PWD', authority_name: 'Public Works Department' },
+  Sanitation: { department_id: 'SANITATION', authority_name: 'Municipal Sanitation Department' },
+  Electricity: { department_id: 'ELECTRICITY_BOARD', authority_name: 'State Electricity Board' },
+  Water: { department_id: 'WATER_WORKS', authority_name: 'Water Supply Department' },
+  Traffic: { department_id: 'TRAFFIC_POLICE', authority_name: 'Traffic Police' },
+  Environment: { department_id: 'FOREST_DEPT', authority_name: 'Forest & Environment Dept' },
+  Other: { department_id: 'MUNICIPAL_CORP', authority_name: 'Municipal Corporation' }
+};
 
 export default function VoiceReport() {
   const navigate = useNavigate();
@@ -36,550 +47,309 @@ export default function VoiceReport() {
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
-  // Call Mode & Speech State
+  const [step, setStep] = useState('WELCOME');
+  const [flowStep, setFlowStep] = useState('extract_complaint'); 
   const [selectedLang, setSelectedLang] = useState('hi-IN');
-  const [isListening, setIsListening] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isThinking, setIsThinking] = useState(false);
-  const [isCallActive, setIsCallActive] = useState(false);
-  const [transcription, setTranscription] = useState('');
-  const [chatHistory, setChatHistory] = useState([
-    { sender: 'ai', text: 'नमस्ते! मैं आपकी शिकायत दर्ज करने में मदद करूँगा। कृपया अपनी समस्या के बारे में विस्तार से बताएं।' }
-  ]);
+  const [transcript, setTranscript] = useState(''); // Text fallback
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const audioChunksRef = useRef([]);
+  const [chatHistory, setChatHistory] = useState([]);
+  const [audioBase64, setAudioBase64] = useState('');
+  const [speechError, setSpeechError] = useState('');
   
-  // Dynamic Complaint Schema State
-  const [currentState, setCurrentState] = useState({
+  const [aiMessage, setAiMessage] = useState(GREETINGS['hi-IN']);
+  
+  const [complaintData, setComplaintData] = useState({
     title: '',
     description: '',
     category: 'Other',
+    department_id: 'MUNICIPAL_CORP',
     urgency_level: 'Medium',
-    address: '',
-    isPhotoAttached: false
+    address: ''
   });
   
-  const [missingField, setMissingField] = useState('issue'); // issue | address | photo | none
-  const [readyToSubmit, setReadyToSubmit] = useState(false);
-  const [manualText, setManualText] = useState('');
-  
-  const [previewUrl, setPreviewUrl] = useState(null);
+  const [location, setLocation] = useState(null);
   const [uploadedMediaUrl, setUploadedMediaUrl] = useState('');
   const [imageHash, setImageHash] = useState('');
-  const [location, setLocation] = useState(null);
-  const [errorMsg, setErrorMsg] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [step, setStep] = useState(1); // 1: Conversational / Voice Filing, 2: Success
+  const [previewUrl, setPreviewUrl] = useState(null);
 
-  // Speech Recognition Ref
-  const recognitionRef = useRef(null);
-  const callActiveRef = useRef(isCallActive);
-
-  // Keep ref in sync for asynchronous speech event handlers
   useEffect(() => {
-    callActiveRef.current = isCallActive;
-  }, [isCallActive]);
-
-  // Initialize Speech Recognition
-  useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const rec = new SpeechRecognition();
-      rec.continuous = false;
-      rec.interimResults = false;
-      rec.lang = selectedLang;
-
-      rec.onstart = () => {
-        setIsListening(true);
-        setErrorMsg('');
-        setTranscription('');
-      };
-
-      rec.onresult = (event) => {
-        const text = event.results[0][0].transcript;
-        setTranscription(text);
-        if (text.trim()) {
-          handleSendMessage(text);
-        }
-      };
-
-      rec.onerror = (event) => {
-        console.log('Speech recognition error:', event.error);
-        if (event.error !== 'no-speech' && event.error !== 'aborted') {
-          setErrorMsg('माइक एक्सेस या स्पीच रिकग्निशन में समस्या है।');
-        }
-        setIsListening(false);
-      };
-
-      rec.onend = () => {
-        setIsListening(false);
-        // Automatically resume listening if in Hands-Free Call Mode and not currently speaking or waiting
-        setTimeout(() => {
-          if (callActiveRef.current && !window.speechSynthesis.speaking && !isThinking && !isListening) {
-            try {
-              recognitionRef.current?.start();
-            } catch (e) {
-              // Ignore already started errors
-            }
-          }
-        }, 600);
-      };
-
-      recognitionRef.current = rec;
-    } else {
-      console.warn('Speech recognition not supported in this browser.');
-    }
-
-    // Geolocation Request on Mount
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setLocation({
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude
-          });
-        },
-        () => console.warn('Location access denied'),
-        { enableHighAccuracy: true, timeout: 8000 }
-      );
-    }
-
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.abort();
-      }
-      if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, [selectedLang, isThinking]);
-
-  // Handle Speech Synthesis
-  const speak = (text) => {
-    if (!window.speechSynthesis || isMuted) return;
-    window.speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    const shortCode = SUPPORTED_LANGUAGES.find(l => l.code === selectedLang)?.short || 'hi';
-    utterance.lang = shortCode;
-
-    // Find custom voice matching shortCode
-    const voices = window.speechSynthesis.getVoices();
-    const voice = voices.find(v => v.lang.toLowerCase().startsWith(shortCode) || v.lang.includes('IN'));
-    if (voice) utterance.voice = voice;
-
-    utterance.onstart = () => {
-      setIsSpeaking(true);
-      // Turn off microphone during speech to prevent voice feedback loop
-      recognitionRef.current?.abort();
-    };
-    
-    utterance.onend = () => {
-      setIsSpeaking(false);
-      // In Hands-free call mode, automatically resume listening after speaking completes
-      if (callActiveRef.current) {
-        setTimeout(() => {
-          if (callActiveRef.current && !isListening && !isThinking) {
-            try {
-              recognitionRef.current?.start();
-            } catch (e) {
-              console.warn(e);
-            }
-          }
-        }, 500);
-      }
-    };
-
-    utterance.onerror = () => setIsSpeaking(false);
-    window.speechSynthesis.speak(utterance);
-  };
-
-  // Speak greeting on mount or language change
-  useEffect(() => {
-    const defaultGreetings = {
-      'hi-IN': 'नमस्ते! मैं आपकी शिकायत दर्ज करने में मदद करूँगा। कृपया अपनी समस्या के बारे में विस्तार से बताएं।',
-      'en-IN': 'Hello! I will help you file your complaint. Please describe the issue in detail.',
-      'mr-IN': 'नमस्कार! मी तुमची तक्रार नोंदविण्यात मदत करेन. कृपया समस्येचे सविस्तर वर्णन करा.',
-      'bn-IN': 'নমস্কার! আমি আপনার অভিযোগ জানাতে সাহায্য করব। দয়া করে বিষয়টি বিস্তারিত বলুন।',
-      'te-IN': 'నమస్కారం! నేను మీ ఫిర్యాదును నమోదు చేయడంలో సహాయపడతాను. దయచేసి సమస్యను వివరంగా వివరించండి.',
-      'ta-IN': 'வணக்கம்! உங்கள் புகாரை பதிவு செய்ய நான் உதவுகிறேன். தயவுசெய்து சிக்கலை விரிவாக விவரிக்கவும்.',
-      'gu-IN': 'નમસ્તે! હું તમારી ફરિયાદ નોંધવામાં મદદ કરીશ. કૃપા કરીને સમસ્યાનું વિગતવાર વર્ણન કરો.',
-      'ur-IN': 'ہیلو! میں آپ کی شکایت درج کرانے میں مدد کروں گا۔ براہ کرم مسئلہ کی تفصیل بتائیں۔',
-      'kn-IN': 'ನಮಸ್ಕಾರ! ನಿಮ್ಮ ದೂರನ್ನು ದಾಖಲಿಸಲು ನಾನು ಸಹಾಯ ಮಾಡುತ್ತೇನೆ. ದಯವಿಟ್ಟು ಸಮಸ್ಯೆಯನ್ನು ವಿವರವಾಗಿ ತಿಳಿಸಿ.',
-      'ml-IN': 'നമസ്കാരം! നിങ്ങളുടെ പരാതി ഫയൽ ചെയ്യാൻ ഞാൻ സഹായിക്കാം. ദയവായി പ്രശ്നം വിശദമായി പറയുക.',
-      'pa-IN': 'ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ ਤੁਹਾਡੀ ਸ਼ਿਕਾਇਤ ਦਰਜ ਕਰਨ ਵਿੱਚ ਮਦਦ ਕਰਾਂਗਾ। ਕਿਰਪา ਕਰਕੇ ਸਮੱਸਿਆ ਦਾ ਵੇਰਵਾ ਦਿਓ।'
-    };
-
-    const text = defaultGreetings[selectedLang] || defaultGreetings['hi-IN'];
-    setChatHistory([{ sender: 'ai', text }]);
-    
-    // Only speak automatically on trigger to respect autoplay policies
-    if (isCallActive) {
-      speak(text);
-    }
+    const greeting = GREETINGS[selectedLang] || GREETINGS['en-IN'];
+    setAiMessage(greeting);
+    setFlowStep('extract_complaint');
+    setStep('WELCOME');
+    setChatHistory([]);
   }, [selectedLang]);
 
-  // Toggle Hands-free Voice Call Mode
-  const toggleVoiceCall = () => {
-    if (isCallActive) {
-      setIsCallActive(false);
-      recognitionRef.current?.stop();
-      if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
-      setIsSpeaking(false);
-    } else {
-      setIsCallActive(true);
-      setErrorMsg('');
-      const firstGreeting = chatHistory[0]?.text || 'Hello';
-      speak(firstGreeting);
-    }
-  };
-
-  // Standard tap to talk microphone trigger
-  const handleTapToSpeak = () => {
-    if (isListening) {
-      recognitionRef.current?.stop();
-    } else {
-      if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
-      setIsSpeaking(false);
-      recognitionRef.current?.start();
-    }
-  };
-
-  // Image Processing & Compression
-  const processImage = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (e) => {
-        const img = new Image();
-        img.src = e.target.result;
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          const MAX_DIM = 1200;
-          if (width > height) {
-            if (width > MAX_DIM) {
-              height = Math.round((height * MAX_DIM) / width);
-              width = MAX_DIM;
-            }
-          } else {
-            if (height > MAX_DIM) {
-              width = Math.round((width * MAX_DIM) / height);
-              height = MAX_DIM;
-            }
-          }
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-          canvas.toBlob((blob) => {
-            if (!blob) return reject(new Error('Canvas is empty'));
-            const processedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
-              type: 'image/webp',
-              lastModified: Date.now()
-            });
-            resolve({ file: processedFile, previewUrl: canvas.toDataURL('image/webp', 0.85) });
-          }, 'image/webp', 0.85);
+  // Text-to-Speech Helper
+  const speakMessage = (text, shouldAutoListen = false) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const cleanText = text.replace(/👋/g, ''); 
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = selectedLang;
+      
+      if (shouldAutoListen) {
+        utterance.onend = () => {
+          setTimeout(() => {
+            startRecording();
+          }, 300);
         };
-        img.onerror = reject;
+      }
+      
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  useEffect(() => {
+    if (aiMessage) {
+      const shouldAutoListen = step === 'WELCOME' || step === 'NEED_INFO';
+      speakMessage(aiMessage, shouldAutoListen);
+    }
+  }, [aiMessage]);
+
+  const requestLocation = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({ latitude: position.coords.latitude, longitude: position.coords.longitude });
+        setComplaintData(prev => ({ ...prev, address: 'Using GPS Location' }));
+      },
+      () => setLocation(null),
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  };
+
+  const startRecording = async () => {
+    if (isRecording) return;
+    
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      
+      recorder.ondataavailable = e => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
       };
-      reader.onerror = reject;
+      
+      recorder.onstop = () => {
+        // Will be handled in stopRecording promise
+      };
+      
+      recorder.start();
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+      setStep('LISTENING');
+      setTranscript('');
+      setAudioBase64('');
+      setSpeechError('');
+    } catch (err) {
+      console.error("Mic access denied or error:", err);
+      setSpeechError("Microphone access denied or unavailable. Please type your response.");
+      setStep('LISTENING');
+    }
+  };
+
+  const stopRecording = () => {
+    return new Promise((resolve) => {
+      if (mediaRecorder && isRecording) {
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: mediaRecorder.mimeType });
+          const reader = new FileReader();
+          reader.readAsDataURL(audioBlob);
+          reader.onloadend = () => {
+            const base64data = reader.result.split(',')[1];
+            resolve(base64data);
+          };
+          mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        };
+        mediaRecorder.stop();
+        setIsRecording(false);
+      } else {
+        resolve('');
+      }
     });
   };
 
-  // Photo Upload Handler
-  const handlePhotoUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setErrorMsg('');
-    setIsThinking(true);
-    recognitionRef.current?.abort();
-
+  const handleProcessVoice = async () => {
+    let finalAudioBase64 = '';
+    if (isRecording) {
+      finalAudioBase64 = await stopRecording();
+    }
+    
+    // Fallback if they typed instead of speaking
+    if (!transcript.trim() && !finalAudioBase64) {
+      setStep('WELCOME');
+      return;
+    }
+    
+    setStep('ANALYZING');
+    
     try {
-      const scanned = await processImage(file);
-      setPreviewUrl(scanned.previewUrl);
+      const res = await fetch(`${API_BASE}/api/chat/voice-assistant`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          transcript: transcript,
+          audioBase64: finalAudioBase64,
+          language: selectedLang,
+          currentData: complaintData,
+          flowStep: flowStep,
+          history: chatHistory
+        })
+      });
+      
+      const data = await res.json();
+      
+      if (data.success) {
+        if (data.extractedFields) {
+          setComplaintData(prev => ({ ...prev, ...data.extractedFields }));
+        }
+        
+        if (flowStep === 'extract_complaint') {
+           if (data.isComplete) {
+             setAiMessage(data.reply);
+             setStep('UPLOAD_PHOTO');
+             setTranscript('');
+           } else {
+             // For history, use the transcribed text from backend if audio was used
+             const userContent = data.transcribedText || transcript || '[Audio Message]';
+             setChatHistory(prev => [...prev, { role: 'user', content: userContent }, { role: 'ai', content: data.reply }]);
+             setAiMessage(data.reply);
+             setStep('NEED_INFO');
+             setTranscript('');
+           }
+        } else if (flowStep === 'extract_location') {
+           if (data.location_type === 'current') {
+              requestLocation();
+              setAiMessage(data.reply);
+              setStep('SUCCESS');
+           } else {
+              setAiMessage(data.reply);
+              setFlowStep('save_specific_location');
+              setStep('NEED_INFO');
+           }
+           setTranscript('');
+        } else if (flowStep === 'save_specific_location') {
+           setAiMessage(data.reply);
+           setStep('SUCCESS');
+           setTranscript('');
+        }
+      } else {
+        setAiMessage(data.error || "Sorry, I couldn't understand that. Let's try again.");
+        setStep('WELCOME');
+      }
+    } catch (error) {
+      console.error("Error processing voice:", error);
+      setAiMessage("Network error. Please try again.");
+      setStep('WELCOME');
+    }
+  };
 
+  const processImageScan = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width, height = img.height;
+          const MAX_DIMENSION = 1920; 
+          if (width > height && width > MAX_DIMENSION) { height *= MAX_DIMENSION / width; width = MAX_DIMENSION; }
+          else if (height > MAX_DIMENSION) { width *= MAX_DIMENSION / height; height = MAX_DIMENSION; }
+          canvas.width = width; canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          canvas.toBlob((blob) => {
+            resolve({ file: new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' }), previewUrl: canvas.toDataURL('image/webp', 0.9) });
+          }, 'image/webp', 0.9);
+        };
+      };
+    });
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    setStep('ANALYZING');
+    try {
+      const scanned = await processImageScan(file);
+      setPreviewUrl(scanned.previewUrl);
       const formData = new FormData();
       formData.append('image', scanned.file);
-
-      // Call Backend Analyzer (checks spam, AI generation, duplicate status)
-      const res = await fetch(`${API_BASE}/api/complaints/analyze`, {
-        method: 'POST',
-        body: formData
-      });
-      const data = await res.json();
-
-      if (res.ok && data.success) {
+      const response = await fetch(`${API_BASE}/api/complaints/analyze`, { method: 'POST', body: formData });
+      const data = await response.json();
+      
+      if(response.ok && data.success) {
         if (data.is_duplicate) {
-          alert(data.message);
-          navigate(`/track/${data.complaint_id}`);
+          alert(data.message || "The Complaint is already filed");
+          setStep('WELCOME');
           return;
         }
 
-        const analysis = data.analysis;
         setUploadedMediaUrl(data.media_url);
         setImageHash(data.image_hash || '');
-
-        // Merge image analysis with ongoing state
-        setCurrentState(prev => {
-          const updated = {
-            ...prev,
-            title: analysis.title || prev.title || 'Civic Issue',
-            category: analysis.category || prev.category,
-            urgency_level: analysis.urgency_level || prev.urgency_level,
-            address: analysis.address || prev.address,
-            isPhotoAttached: true
-          };
-          
-          // Send notification message to Assistant updating context
-          sendSystemPhotoUpdate(updated, analysis.title);
-          return updated;
-        });
-
-      } else {
-        setErrorMsg(data.error || 'छवि सत्यापन विफल रहा।');
-        setPreviewUrl(null);
-      }
-    } catch (e) {
-      console.error(e);
-      setErrorMsg('नेटवर्क त्रुटि। कृपया पुनः प्रयास करें।');
-      setPreviewUrl(null);
-    } finally {
-      setIsThinking(false);
-    }
-  };
-
-  // Notify voice assistant of photo uploads
-  const sendSystemPhotoUpdate = async (updatedState, imageTitle) => {
-    setIsThinking(true);
-    const shortCode = SUPPORTED_LANGUAGES.find(l => l.code === selectedLang)?.short || 'hi';
-    const systemMessageText = `[System: Citizen has uploaded photo evidence displaying: "${imageTitle}"]`;
-
-    try {
-      const res = await fetch(`${API_BASE}/api/chat/voice-assistant`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          history: chatHistory,
-          userMessage: systemMessageText,
-          currentState: updatedState,
-          selectedLanguage: shortCode
-        })
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setChatHistory(prev => [...prev, { sender: 'ai', text: data.reply }]);
-        setMissingField(data.missingField || 'none');
-        setReadyToSubmit(!!data.readyToSubmit);
-        speak(data.reply);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsThinking(false);
-    }
-  };
-
-  // Skip Photo Action
-  const handleSkipPhoto = async () => {
-    setIsThinking(true);
-    const shortCode = SUPPORTED_LANGUAGES.find(l => l.code === selectedLang)?.short || 'hi';
-    const systemMessageText = `[System: Citizen specifies they do not have a photo. Proceed without photo evidence.]`;
-    
-    // Optimistically update photo flag
-    setCurrentState(prev => ({ ...prev, isPhotoAttached: false }));
-
-    try {
-      const res = await fetch(`${API_BASE}/api/chat/voice-assistant`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          history: chatHistory,
-          userMessage: systemMessageText,
-          currentState: { ...currentState, isPhotoAttached: false },
-          selectedLanguage: shortCode
-        })
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setChatHistory(prev => [...prev, { sender: 'ai', text: data.reply }]);
-        setMissingField(data.missingField || 'none');
-        setReadyToSubmit(!!data.readyToSubmit);
-        speak(data.reply);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsThinking(false);
-    }
-  };
-
-  // Fetch Device GPS location and Geocode
-  const fetchGPSLocation = () => {
-    if (!navigator.geolocation) return;
-    setIsThinking(true);
-    setErrorMsg('');
-    recognitionRef.current?.abort();
-
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const { latitude, longitude } = pos.coords;
-      setLocation({ latitude, longitude });
-      
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
-        const data = await res.json();
-        const formattedAddress = data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
         
-        setCurrentState(prev => {
-          const updated = { ...prev, address: formattedAddress };
-          sendSystemLocationUpdate(updated, formattedAddress);
-          return updated;
-        });
-      } catch (err) {
-        console.error(err);
-        setErrorMsg("स्थान खोजने में असमर्थ। कृपया बोलकर स्थान बताएं।");
-      } finally {
-        setIsThinking(false);
-      }
-    }, () => {
-      setErrorMsg("जीपीएस एक्सेस अस्वीकृत। कृपया स्थान की अनुमति चालू करें।");
-      setIsThinking(false);
-    }, { enableHighAccuracy: true, timeout: 8000 });
-  };
-
-  // Notify assistant of GPS updates
-  const sendSystemLocationUpdate = async (updatedState, formattedAddress) => {
-    setIsThinking(true);
-    const shortCode = SUPPORTED_LANGUAGES.find(l => l.code === selectedLang)?.short || 'hi';
-    const systemMessageText = `[System: Citizen selected GPS address: "${formattedAddress}"]`;
-
-    try {
-      const res = await fetch(`${API_BASE}/api/chat/voice-assistant`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          history: chatHistory,
-          userMessage: systemMessageText,
-          currentState: updatedState,
-          selectedLanguage: shortCode
-        })
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setChatHistory(prev => [...prev, { sender: 'ai', text: data.reply }]);
-        setMissingField(data.missingField || 'none');
-        setReadyToSubmit(!!data.readyToSubmit);
-        speak(data.reply);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsThinking(false);
-    }
-  };
-
-  // Text inputs callback (when talking is hard/unavailable)
-  const handleManualSubmit = (e) => {
-    e.preventDefault();
-    if (!manualText.trim()) return;
-    const text = manualText;
-    setManualText('');
-    handleSendMessage(text);
-  };
-
-  // Main voice transcription/message handler
-  const handleSendMessage = async (textToSend) => {
-    if (!textToSend.trim() || isThinking) return;
-
-    setChatHistory(prev => [...prev, { sender: 'user', text: textToSend }]);
-    setIsThinking(true);
-    const shortCode = SUPPORTED_LANGUAGES.find(l => l.code === selectedLang)?.short || 'hi';
-
-    // Intercept submit confirmation commands in transcript (e.g. saying "submit" / "दर्ज करो")
-    const isSubmitCommand = ['submit', 'submit it', 'दर्ज करो', 'जमा करो', 'शिकायत दर्ज करो', 'yes submit', 'हाँ दर्ज करो'].includes(textToSend.toLowerCase().trim());
-    if (isSubmitCommand && readyToSubmit) {
-      setIsThinking(false);
-      handleSubmitGrievance();
-      return;
-    }
-
-    try {
-      const res = await fetch(`${API_BASE}/api/chat/voice-assistant`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          history: chatHistory,
-          userMessage: textToSend,
-          currentState: currentState,
-          selectedLanguage: shortCode
-        })
-      });
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        setChatHistory(prev => [...prev, { sender: 'ai', text: data.reply }]);
+        const priorityScore = data.priority_score || 5;
+        let urgency = 'Medium';
+        if (priorityScore >= 8) urgency = 'Emergency';
+        else if (priorityScore >= 6) urgency = 'High';
+        else if (priorityScore <= 3) urgency = 'Low';
         
-        // Update grievance fields
-        if (data.extractedFields) {
-          setCurrentState(prev => ({
-            ...prev,
-            title: data.extractedFields.title || prev.title,
-            description: data.extractedFields.description || prev.description || textToSend,
-            category: data.extractedFields.category || prev.category,
-            urgency_level: data.extractedFields.urgency_level || prev.urgency_level,
-            address: data.extractedFields.address || prev.address
-          }));
+        const categoryKey = data.category || complaintData.category || 'Other';
+        const mappedDept = CIVIC_CATEGORIES[categoryKey]?.department_id || 'MUNICIPAL_CORP';
+
+        const newComplaintData = { 
+          ...complaintData, 
+          category: categoryKey,
+          department_id: mappedDept,
+          urgency_level: urgency
+        };
+        setComplaintData(newComplaintData);
+
+        // Fetch AI announcement
+        const res2 = await fetch(`${API_BASE}/api/chat/voice-assistant`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            transcript: '',
+            language: selectedLang,
+            currentData: newComplaintData,
+            flowStep: 'announce_dept'
+          })
+        });
+        const data2 = await res2.json();
+        if (data2.success) {
+          setAiMessage(data2.reply);
+          setFlowStep('extract_location');
+          setStep('NEED_INFO');
+        } else {
+          setStep('SUCCESS');
         }
-
-        setMissingField(data.missingField || 'none');
-        setReadyToSubmit(!!data.readyToSubmit);
-        speak(data.reply);
-
       } else {
-        const errorReply = 'क्षमा करें, प्रतिक्रिया विफल रही। कृपया पुनः प्रयास करें।';
-        setChatHistory(prev => [...prev, { sender: 'ai', text: errorReply }]);
-        speak(errorReply);
+        alert("Failed to process photo.");
+        setStep('UPLOAD_PHOTO');
       }
     } catch (err) {
-      console.error(err);
-      const errorReply = 'नेटवर्क समस्या के कारण सर्वर से संपर्क नहीं हो सका।';
-      setChatHistory(prev => [...prev, { sender: 'ai', text: errorReply }]);
-      speak(errorReply);
-    } finally {
-      setIsThinking(false);
+      setStep('UPLOAD_PHOTO');
     }
   };
 
-  // Submit Final Report
-  const handleSubmitGrievance = async () => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
-    setErrorMsg('');
-    
-    // Stop ongoing calls and voice
-    setIsCallActive(false);
-    recognitionRef.current?.abort();
-    if (window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-    }
-
-    const mappedDept = CIVIC_CATEGORIES_LIST[currentState.category] || CIVIC_CATEGORIES_LIST.Other;
-
-    const payload = {
+  const submitComplaint = async () => {
+    setStep('SUBMITTING');
+    const finalData = {
       citizen_id: user?.id,
-      title: currentState.title || 'Civic Issue via Voice',
-      description: currentState.description || chatHistory.filter(m => m.sender === 'user').map(m => m.text).join(' '),
-      category: currentState.category,
-      department_id: mappedDept.department_id,
-      priority_score: currentState.urgency_level === 'Emergency' ? 10 : currentState.urgency_level === 'High' ? 8 : 5,
-      urgency_level: currentState.urgency_level,
-      latitude: location?.latitude || 0,
-      longitude: location?.longitude || 0,
-      address: currentState.address || 'Location Specified via Voice',
+      title: complaintData.title || 'Voice Complaint',
+      description: complaintData.description || transcript,
+      category: complaintData.category || 'Other',
+      department_id: complaintData.department_id || 'MUNICIPAL_CORP',
+      urgency_level: complaintData.urgency_level || 'Medium',
+      priority_score: 5,
+      latitude: location?.latitude,
+      longitude: location?.longitude,
+      address: complaintData.address || '',
       district: user?.district || 'Bhopal',
       media_urls: uploadedMediaUrl ? [uploadedMediaUrl] : [],
       image_hash: imageHash
@@ -589,410 +359,233 @@ export default function VoiceReport() {
       const res = await fetch(`${API_BASE}/api/complaints`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(finalData)
       });
       const data = await res.json();
-      if (res.ok && data.success) {
-        setStep(2);
-      } else {
-        setErrorMsg(data.error || 'शिकायत जमा करने में विफलता।');
+      if(data.success) {
+        if (data.is_duplicate) {
+          alert(data.message || 'The Complaint is already filed');
+          navigate(`/dashboard`);
+        } else {
+          setStep('DONE');
+        }
       }
+      else { alert(data.error || 'Submission failed'); setStep('SUCCESS'); }
     } catch (e) {
-      console.error(e);
-      setErrorMsg('नेटवर्क समस्या। कृपया पुनः सबमिट करें।');
-    } finally {
-      setIsSubmitting(false);
+      alert('Network error'); setStep('SUCCESS');
     }
   };
 
-  // Checklist values
-  const isIssueReady = !!currentState.title;
-  const isLocationReady = !!currentState.address;
-  const isPhotoReady = currentState.isPhotoAttached;
-
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900 overflow-hidden pb-10">
-      <div className="dancheong-line" />
+    <div className="min-h-screen bg-slate-900 text-white font-sans overflow-x-hidden flex flex-col relative pb-32">
+      <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 blur-[100px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-teal-500/10 blur-[100px] rounded-full pointer-events-none" />
+      
+      <div className="flex-1 w-full max-w-4xl mx-auto p-4 flex flex-col items-center justify-center relative z-10 pt-12 pb-24">
+        
+        <button onClick={() => navigate('/dashboard')} className="absolute top-4 left-4 p-3 bg-slate-800/50 rounded-full hover:bg-slate-700 transition-colors z-20 backdrop-blur-md">
+          <ArrowLeft size={24} />
+        </button>
 
-      {step === 1 && (
-        <div className="flex-1 flex flex-col h-screen overflow-hidden">
-          
-          {/* Header */}
-          <div className="bg-white border-b border-slate-100 p-4 pt-12 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-3">
-              <button onClick={() => navigate(-1)} className="p-2 text-slate-400 hover:text-slate-900 transition-colors">
-                <ArrowLeft size={20} />
-              </button>
-              <div>
-                <h1 className="text-lg font-bold font-serif flex items-center gap-1.5">
-                  Voice Grievance AI 🎙
-                </h1>
-                <p className="text-[10px] text-slate-400">Multilingual Step-by-Step Reporting</p>
+        <div className="absolute top-4 right-4 z-20">
+          <div className="bg-slate-800/80 backdrop-blur-md rounded-full px-4 py-2 flex items-center gap-2 border border-slate-700">
+            <Globe size={18} className="text-teal-400" />
+            <select 
+              value={selectedLang} 
+              onChange={(e) => setSelectedLang(e.target.value)}
+              className="bg-transparent text-white outline-none appearance-none cursor-pointer font-bold pr-4 text-sm"
+            >
+              {LANGUAGES.map(lang => (
+                <option key={lang.code} value={lang.code} className="bg-slate-800">{lang.label} ({lang.name})</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {step === 'WELCOME' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center text-center w-full max-w-md mt-16">
+            <div className="relative mb-12">
+              <div className="w-32 h-32 bg-slate-800 rounded-full flex items-center justify-center relative z-10 border border-slate-700">
+                <Mic size={48} className="text-slate-400" />
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={() => setIsMuted(!isMuted)} 
-                className={`p-2 rounded-xl border transition-all ${isMuted ? 'border-red-200 bg-red-50 text-red-500' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
-                title="Mute AI Speech"
-              >
-                {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-              </button>
-              
-              {/* Call Mode Toggle */}
-              <button
-                onClick={toggleVoiceCall}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all shadow-sm ${isCallActive ? 'bg-red-500 text-white animate-pulse' : 'bg-green-600 text-white hover:bg-green-700'}`}
-              >
-                {isCallActive ? (
-                  <>
-                    <PhoneOff size={14} /> Hang Up Call
-                  </>
-                ) : (
-                  <>
-                    <Phone size={14} /> Start Voice Call
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Languages Selector Strip */}
-          <div className="bg-slate-100 border-b border-slate-200/60 p-2 overflow-x-auto no-scrollbar flex gap-2 shrink-0">
-            {SUPPORTED_LANGUAGES.map((lang) => (
-              <button
-                key={lang.code}
-                onClick={() => setSelectedLang(lang.code)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 transition-all ${selectedLang === lang.code ? 'bg-primary text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50'}`}
-              >
-                {lang.display}
-              </button>
-            ))}
-          </div>
-
-          {/* Error Banner */}
-          {errorMsg && (
-            <div className="m-3 p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-2 text-red-600 text-xs shrink-0">
-              <AlertTriangle size={15} />
-              <span>{errorMsg}</span>
-            </div>
-          )}
-
-          {/* Call Mode Status Banner */}
-          {isCallActive && (
-            <div className="bg-indigo-50 border-b border-indigo-100 p-2.5 px-4 flex justify-between items-center shrink-0">
-              <div className="flex items-center gap-2 text-xs text-indigo-700 font-medium">
-                <span className="w-2 h-2 bg-indigo-500 rounded-full animate-ping" />
-                <span>AI Call Connected — speak hands-free</span>
-              </div>
-              <p className="text-[10px] text-slate-400">Mic starts when AI stops speaking</p>
-            </div>
-          )}
-
-          {/* Main Content Area */}
-          <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
             
-            {/* Left Column: Call Voice Chat & Transcription */}
-            <div className="flex-1 flex flex-col border-r border-slate-200/50 overflow-hidden bg-white/40">
+            <h1 className="text-3xl font-bold mb-4 font-serif leading-tight">
+              {aiMessage}
+            </h1>
+            <p className="text-slate-400 mb-12 text-lg">Press start to speak</p>
+            
+            <button onClick={startRecording} className="w-full py-5 bg-gradient-to-r from-primary to-teal rounded-full text-xl font-bold hover:shadow-[0_0_40px_rgba(99,102,241,0.4)] transition-all flex items-center justify-center gap-3 active:scale-95">
+              <Mic size={24} /> Start Speaking
+            </button>
+          </motion.div>
+        )}
+
+        {(step === 'LISTENING' || step === 'NEED_INFO') && (
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center w-full max-w-md">
+            {step === 'NEED_INFO' && (
+              <div className="mb-8 p-4 bg-slate-800 rounded-2xl border border-slate-700 w-full text-left">
+                <p className="text-lg text-primary font-bold flex items-center gap-2"><Sparkles size={20} /> AI Assistant</p>
+                <p className="text-xl mt-2">{aiMessage}</p>
+              </div>
+            )}
+            
+            <div className="relative mb-12">
+              <div className="w-32 h-32 bg-primary rounded-full flex items-center justify-center relative z-10 shadow-[0_0_60px_rgba(99,102,241,0.6)] animate-pulse">
+                <Mic size={48} className="text-white" />
+              </div>
+              <div className="absolute inset-0 bg-primary/30 rounded-full animate-ping scale-150" />
+            </div>
+            
+            <div className="w-full bg-slate-800 p-6 rounded-[2rem] min-h-[150px] mb-8 border border-slate-700 shadow-xl relative flex items-center justify-center">
+              {speechError ? (
+                <div className="flex flex-col h-full w-full">
+                  <p className="text-sm text-amber-400 font-bold mb-3">{speechError}</p>
+                  <textarea 
+                    value={transcript} 
+                    onChange={(e) => setTranscript(e.target.value)}
+                    placeholder="Type your response here..."
+                    className="w-full bg-slate-900/50 text-white p-4 rounded-xl border border-slate-600 focus:border-primary outline-none resize-none min-h-[100px]"
+                  />
+                </div>
+              ) : isRecording ? (
+                <div className="flex flex-col items-center justify-center text-center">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
+                    <p className="text-xl text-red-400 font-bold tracking-wide">Recording Audio</p>
+                  </div>
+                  <p className="text-sm text-slate-400 mt-2">Speak now. Click 'Done Talking' when finished.</p>
+                </div>
+              ) : transcript ? (
+                <p className="text-xl leading-relaxed text-left w-full">{transcript}</p>
+              ) : (
+                <p className="text-xl text-slate-500 italic text-center">Ready to record.</p>
+              )}
+            </div>
+
+            <div className="flex gap-4 w-full">
+              {speechError ? (
+                 <button onClick={() => {setStep('WELCOME'); setFlowStep('extract_complaint'); setTranscript('');}} className="flex-1 py-4 bg-slate-800 rounded-full font-bold hover:bg-slate-700 transition-colors">
+                  Cancel
+                </button>
+              ) : !isRecording ? (
+                <button onClick={startRecording} className="flex-1 py-4 bg-slate-800 rounded-full font-bold hover:bg-slate-700 transition-colors">
+                  Speak Again
+                </button>
+              ) : (
+                <button onClick={() => {stopRecording(); setStep('WELCOME'); setFlowStep('extract_complaint'); setTranscript('');}} className="flex-1 py-4 bg-slate-800 rounded-full font-bold hover:bg-slate-700 transition-colors">
+                  Cancel
+                </button>
+              )}
+              <button onClick={handleProcessVoice} className="flex-[2] py-4 bg-primary rounded-full font-bold text-lg hover:bg-indigo-600 transition-colors shadow-lg">
+                Done {speechError ? 'Typing' : 'Talking'}
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {step === 'ANALYZING' && (
+          <div className="flex flex-col items-center">
+            <Loader2 size={64} className="text-primary animate-spin mb-6" />
+            <h2 className="text-2xl font-bold mb-2">Analyzing...</h2>
+          </div>
+        )}
+
+        {step === 'UPLOAD_PHOTO' && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center w-full max-w-md">
+            <div className="mb-8 p-6 bg-slate-800 rounded-3xl border border-slate-700 text-left w-full shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-teal" />
+              <p className="text-lg text-teal-400 font-bold flex items-center gap-2 mb-3"><Sparkles size={20} /> AI Assistant</p>
+              <p className="text-2xl font-serif">{aiMessage}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 w-full mb-6">
+              <button onClick={() => cameraInputRef.current?.click()} className="aspect-square bg-slate-800 border-2 border-dashed border-slate-600 rounded-[2rem] flex flex-col items-center justify-center gap-4 hover:border-primary transition-all">
+                <Camera size={32} className="text-primary" />
+                <span className="font-bold">Use Camera</span>
+              </button>
+              <button onClick={() => fileInputRef.current?.click()} className="aspect-square bg-slate-800 border-2 border-dashed border-slate-600 rounded-[2rem] flex flex-col items-center justify-center gap-4 hover:border-teal transition-all">
+                <ImageIcon size={32} className="text-teal-400" />
+                <span className="font-bold">Upload Gallery</span>
+              </button>
+            </div>
+            
+            <button onClick={() => {
+              setAiMessage("You skipped the photo. Is the problem at your current GPS location, or another location?");
+              setFlowStep('extract_location');
+              setStep('NEED_INFO');
+            }} className="py-4 px-8 text-slate-400 hover:text-white font-bold underline underline-offset-4">
+              Skip photo (Not recommended)
+            </button>
+            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
+            <input type="file" ref={cameraInputRef} className="hidden" accept="image/*" capture="environment" onChange={handleFileChange} />
+          </motion.div>
+        )}
+
+        {step === 'SUCCESS' && (
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md flex flex-col text-left">
+            {previewUrl && (
+              <div className="w-full rounded-[2rem] overflow-hidden mb-6 shadow-xl border-4 border-white">
+                <img src={previewUrl} className="w-full h-48 object-cover" />
+              </div>
+            )}
+            
+            <div className="bg-slate-50 border border-slate-200 p-6 rounded-[2rem] shadow-xl relative overflow-hidden mb-8">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 to-emerald-400" />
               
-              {/* Chat Log */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {chatHistory.map((msg, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div className={`max-w-[85%] p-3.5 rounded-2xl text-xs leading-relaxed ${msg.sender === 'user' ? 'bg-primary text-white rounded-tr-none' : 'bg-white border border-slate-150 text-slate-800 rounded-tl-none shadow-sm'}`}>
-                      {msg.text.startsWith('[System:') ? (
-                        <span className="italic flex items-center gap-1.5 text-[10px] text-slate-500 font-medium">
-                          <Eye size={12} /> {msg.text.replace('[System:', '').replace(']', '')}
-                        </span>
-                      ) : (
-                        msg.text
-                      )}
-                    </div>
-                  </motion.div>
-                ))}
+              <p className="text-sm text-teal-600 font-bold flex items-center gap-2 mb-5 uppercase tracking-wider">
+                <Sparkles size={16} /> System Initial Assessment
+              </p>
+              
+              <div className="space-y-5">
+                <div>
+                  <p className="text-xs font-bold text-slate-500 uppercase mb-2">Detected Issue</p>
+                  <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <p className="text-xl font-bold text-slate-800">{complaintData.title}</p>
+                  </div>
+                </div>
                 
-                {isThinking && (
-                  <div className="flex justify-start">
-                    <div className="bg-white border border-slate-150 p-3.5 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-2 text-xs text-slate-400">
-                      <Loader2 size={14} className="animate-spin text-primary" />
-                      <span>AI सोच रहा है...</span>
-                    </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-500 uppercase mb-2">Target Department (System Detected)</p>
+                  <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+                    <p className="text-lg font-bold text-slate-800">
+                      {complaintData.category} — {CIVIC_CATEGORIES[complaintData.category]?.authority_name || 'Municipal Corporation'}
+                    </p>
                   </div>
-                )}
-              </div>
-
-              {/* Dynamic Option Guide Card (Context-Sensitive Step UI) */}
-              <div className="p-4 bg-indigo-50/40 border-t border-slate-200/60 shrink-0">
-                <AnimatePresence mode="wait">
-                  {/* Step 1: Issue Description */}
-                  {missingField === 'issue' && !readyToSubmit && (
-                    <motion.div 
-                      key="step-issue"
-                      initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }}
-                      className="bg-white p-4 rounded-2xl border border-indigo-100 shadow-sm flex flex-col gap-2"
-                    >
-                      <h3 className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                        <Sparkles size={14} className="text-primary" /> Step 1: Describe the Civic Issue
-                      </h3>
-                      <p className="text-[11px] text-slate-500 leading-relaxed">
-                        कृपया माइक या कॉल चालू करें और समस्या बोलें। उदाहरण: <em>"यहाँ गली में कचरे का ढेर लगा है"</em> या <em>"सड़क पर बड़ा गड्ढा है।"</em>
-                      </p>
-                    </motion.div>
-                  )}
-
-                  {/* Step 2: Location Access / Address */}
-                  {missingField === 'address' && !readyToSubmit && (
-                    <motion.div 
-                      key="step-address"
-                      initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }}
-                      className="bg-white p-4 rounded-2xl border border-indigo-100 shadow-sm flex flex-col gap-3"
-                    >
-                      <div>
-                        <h3 className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                          <MapPin size={14} className="text-primary animate-bounce" /> Step 2: Location details
-                        </h3>
-                        <p className="text-[11px] text-slate-500 leading-relaxed mt-0.5">
-                          कृपया अपना स्थान बताएं या सीधे नीचे दिए गए बटन पर क्लिक कर GPS स्थान शेयर करें।
-                        </p>
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={fetchGPSLocation}
-                          className="flex-1 bg-gradient-to-r from-primary to-teal text-white py-3 px-4 rounded-xl text-xs font-bold shadow-md flex items-center justify-center gap-2 hover:opacity-95 transition-opacity"
-                        >
-                          <Compass size={16} /> GPS स्थान से भरें
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Step 3: Photo Evidence Capture */}
-                  {missingField === 'photo' && !readyToSubmit && (
-                    <motion.div 
-                      key="step-photo"
-                      initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }}
-                      className="bg-white p-4 rounded-2xl border border-indigo-100 shadow-sm flex flex-col gap-3"
-                    >
-                      <div>
-                        <h3 className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                          <Camera size={14} className="text-primary" /> Step 3: Attach Photo (Recommended)
-                        </h3>
-                        <p className="text-[11px] text-slate-500 leading-relaxed mt-0.5">
-                          समस्या का फोटो खींचें या गैलरी से अपलोड करें। फोटो न होने की स्थिति में आप आगे बढ़ सकते हैं।
-                        </p>
-                      </div>
-                      
-                      <div className="grid grid-cols-3 gap-2">
-                        <button 
-                          onClick={() => cameraInputRef.current?.click()} 
-                          className="py-3 px-2 bg-indigo-50 border border-dashed border-indigo-200 text-primary rounded-xl flex flex-col items-center justify-center gap-1 font-bold text-[10px] hover:bg-indigo-100/40"
-                        >
-                          <Camera size={18} /> कैमरा फोटो लें
-                        </button>
-                        <button 
-                          onClick={() => fileInputRef.current?.click()} 
-                          className="py-3 px-2 bg-teal-50 border border-dashed border-teal-200 text-teal-600 rounded-xl flex flex-col items-center justify-center gap-1 font-bold text-[10px] hover:bg-teal-100/40"
-                        >
-                          <ImageIcon size={18} /> गैलरी से चुनें
-                        </button>
-                        <button 
-                          onClick={handleSkipPhoto} 
-                          className="py-3 px-2 bg-slate-100 border border-slate-200 text-slate-600 rounded-xl flex flex-col items-center justify-center gap-1 font-bold text-[10px] hover:bg-slate-200"
-                        >
-                          <span className="text-lg">⏭</span> फोटो छोड़ें (Skip)
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Step 4: Submission Confirmation */}
-                  {readyToSubmit && (
-                    <motion.div 
-                      key="step-confirm"
-                      initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-                      className="bg-gradient-to-br from-green-50 to-emerald-50/50 p-4 rounded-2xl border border-green-200 shadow-sm flex flex-col gap-3 animate-pulse"
-                    >
-                      <div>
-                        <h3 className="text-xs font-bold text-green-800 flex items-center gap-1.5">
-                          <CheckCircle size={15} /> Step 4: Ready to Submit
-                        </h3>
-                        <p className="text-[11px] text-green-700 leading-relaxed mt-0.5 font-medium">
-                          सभी आवश्यक विवरण दर्ज कर लिए गए हैं। शिकायत दर्ज करने के लिए बोलें: <em>"शिकायत दर्ज करो"</em> या नीचे दिए गए बटन पर क्लिक करें।
-                        </p>
-                      </div>
-                      
-                      <button 
-                        onClick={handleSubmitGrievance}
-                        disabled={isSubmitting}
-                        className="w-full bg-green-600 text-white font-bold py-3.5 rounded-xl shadow-lg hover:bg-green-700 transition-all text-xs flex items-center justify-center gap-2"
-                      >
-                        {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
-                        शिकायत दर्ज करें (Submit Final Complaint)
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* Speech Microphone controls */}
-              <div className="p-4 bg-slate-50 border-t border-slate-100 flex flex-col items-center gap-3 shrink-0">
-                <div className="h-6 flex items-center gap-1.5 justify-center w-full">
-                  {isListening ? (
-                    [0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-                      <motion.div
-                        key={i}
-                        className="w-1 bg-red-400 rounded-full"
-                        animate={{ height: [10, 26, 6, 18, 10][(i + Math.round(Math.random() * 2)) % 5] }}
-                        transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.05 }}
-                      />
-                    ))
-                  ) : isSpeaking ? (
-                    [0, 1, 2, 3, 4, 5].map((i) => (
-                      <motion.div
-                        key={i}
-                        className="w-1 bg-primary rounded-full"
-                        animate={{ height: [6, 22, 10, 16, 6][i % 5] }}
-                        transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.07 }}
-                      />
-                    ))
-                  ) : (
-                    <div className="w-16 h-0.5 bg-slate-200 rounded-full" />
-                  )}
+                  <div className="mt-3 flex items-center gap-3">
+                    <div className="bg-slate-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-slate-700">Dept Rating: 5 (0 reviews)</span>
+                    </div>
+                    <p className="text-xs text-slate-500 italic">
+                      System mapped this issue to {CIVIC_CATEGORIES[complaintData.category]?.authority_name || 'Municipal Corporation'}
+                    </p>
+                  </div>
                 </div>
-
-                <div className="flex items-center gap-4 w-full px-4 justify-between">
-                  {/* Manual Type Input fallback */}
-                  <form onSubmit={handleManualSubmit} className="flex-1 flex gap-2 mr-2">
-                    <input 
-                      value={manualText} 
-                      onChange={e => setManualText(e.target.value)} 
-                      placeholder="Type message manually if needed..." 
-                      className="flex-1 text-xs p-2.5 px-4 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    />
-                    <button type="submit" className="p-2.5 bg-slate-800 text-white rounded-xl hover:bg-slate-900 transition-colors">
-                      <Send size={15} />
-                    </button>
-                  </form>
-
-                  {/* Manual Speak Mic Button (only shows when Call is not active) */}
-                  {!isCallActive && (
-                    <motion.button
-                      type="button"
-                      onClick={handleTapToSpeak}
-                      whileTap={{ scale: 0.95 }}
-                      className={`w-12 h-12 rounded-full flex items-center justify-center shadow-md transition-all ${isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-primary text-white'}`}
-                    >
-                      {isListening ? <MicOff size={20} /> : <Mic size={20} />}
-                    </motion.button>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Live Grievance Schema Inspector */}
-            <div className="h-2/5 md:h-full md:w-80 border-t md:border-t-0 bg-slate-100 overflow-y-auto p-4 space-y-4 shrink-0">
-              <div className="bg-white border border-slate-150 p-4 rounded-2xl shadow-sm space-y-4">
-                <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-                  <Sparkles size={13} className="text-primary" /> शिकायत का विवरण (Live)
-                </h2>
-
-                <div className="space-y-3 text-xs">
-                  <div>
-                    <label className="text-[10px] text-slate-400 uppercase font-bold">शीर्षक (Title)</label>
-                    <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 min-h-[36px] flex items-center">
-                      {currentState.title || <span className="text-slate-300 italic font-normal">शीर्षक सुन रहा हूँ...</span>}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] text-slate-400 uppercase font-bold">श्रेणी (Category)</label>
-                    <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 min-h-[36px] flex items-center">
-                      {currentState.category ? `${currentState.category} — ${CIVIC_CATEGORIES_LIST[currentState.category]?.authority_name || 'Municipal'}` : <span className="text-slate-300 italic font-normal">सुन रहा हूँ...</span>}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] text-slate-400 uppercase font-bold">स्थान (Address)</label>
-                    <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 min-h-[36px] flex items-center">
-                      {currentState.address || <span className="text-slate-300 italic">स्थान सुन रहा हूँ...</span>}
-                    </div>
-                  </div>
-
-                  {/* Photo Display */}
-                  {previewUrl && (
-                    <div>
-                      <label className="text-[10px] text-slate-400 uppercase font-bold block mb-1">फोटो साक्ष्य (Evidence)</label>
-                      <div className="relative rounded-xl overflow-hidden aspect-video border border-slate-200 shadow-sm">
-                        <img src={previewUrl} className="w-full h-full object-cover" />
-                        <button 
-                          onClick={() => { setPreviewUrl(null); setUploadedMediaUrl(''); setImageHash(''); setCurrentState(p => ({ ...p, isPhotoAttached: false })); }} 
-                          className="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-md"
-                        >
-                          हटाएं
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Progress Checklist indicator */}
-              <div className="bg-white border border-slate-150 p-4 rounded-2xl shadow-sm space-y-3">
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">चेकलिस्ट</h3>
-                <div className="space-y-2 text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className={isIssueReady ? 'text-green-500' : 'text-slate-300'}>
-                      <CheckCircle size={16} />
-                    </span>
-                    <span className={isIssueReady ? 'text-slate-700 font-medium' : 'text-slate-400'}>समस्या का विवरण</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={isLocationReady ? 'text-green-500' : 'text-slate-300'}>
-                      <CheckCircle size={16} />
-                    </span>
-                    <span className={isLocationReady ? 'text-slate-700 font-medium' : 'text-slate-400'}>स्थान/पता</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={isPhotoReady ? 'text-green-500' : 'text-slate-300'}>
-                      <CheckCircle size={16} />
-                    </span>
-                    <span className={isPhotoReady ? 'text-slate-700 font-medium' : 'text-slate-400'}>फोटो अटैच है</span>
+                
+                <div>
+                  <p className="text-xs font-bold text-slate-500 uppercase mb-2">Location / Address</p>
+                  <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+                    <p className="text-slate-800 font-medium">{complaintData.address || 'Address not specified'}</p>
                   </div>
                 </div>
               </div>
             </div>
             
-          </div>
-          
-          {/* Inputs for hidden file uploads */}
-          <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handlePhotoUpload} />
-          <input type="file" ref={cameraInputRef} className="hidden" accept="image/*" capture="environment" onChange={handlePhotoUpload} />
-        </div>
-      )}
+            <button onClick={submitComplaint} className="w-full py-5 bg-gradient-to-r from-primary to-teal rounded-full text-xl font-bold shadow-lg text-white hover:opacity-90 transition-opacity">
+              File Complaint Now
+            </button>
+          </motion.div>
+        )}
 
-      {step === 2 && (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in zoom-in-95 duration-500 h-screen bg-slate-50">
-          <div className="w-24 h-24 bg-teal-50 text-teal-600 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-sm">
-            <CheckCircle size={48} />
-          </div>
-          <h2 className="text-3xl font-bold font-serif mb-4 tracking-tight">शिकायत दर्ज हुई!</h2>
-          <p className="text-slate-500 text-sm leading-relaxed mb-10 max-w-xs">
-            आपकी नागरिक शिकायत सफलतापूर्वक दर्ज कर संबंधित विभाग को प्रेषित कर दी गई है।
-          </p>
-          <button 
-            onClick={() => navigate('/dashboard')} 
-            className="w-full max-w-sm bg-slate-900 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-black transition-colors text-sm"
-          >
-            डैशबोर्ड पर वापस जाएं
-          </button>
-        </div>
-      )}
+        {step === 'SUBMITTING' && (<div className="flex flex-col items-center"><Loader2 size={64} className="text-primary animate-spin mb-6" /><h2 className="text-2xl font-bold">Submitting...</h2></div>)}
+        {step === 'DONE' && (
+          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center text-center">
+            <div className="w-24 h-24 bg-teal-500/20 text-teal-400 rounded-full flex items-center justify-center mb-6"><CheckCircle size={48} /></div>
+            <h2 className="text-3xl font-bold mb-4 font-serif">Complaint Filed</h2>
+            <button onClick={() => navigate('/dashboard')} className="px-8 py-4 bg-slate-800 rounded-full font-bold">Return to Dashboard</button>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 }

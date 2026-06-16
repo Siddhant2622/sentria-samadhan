@@ -325,7 +325,8 @@ export function AuthProvider({ children }) {
       setError('');
 
       // Update Firebase Auth profile
-      if (firebaseUser) {
+      // Prevent crash with _canInitEmulator when using mock/demo user object
+      if (firebaseUser && firebaseUser.auth) {
         await updateProfile(firebaseUser, { displayName: newName });
       }
 

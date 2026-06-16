@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { memo } from 'react';
-import { Home, PlusCircle, Map, User, Globe, Shield, Truck, BarChart2, Users } from 'lucide-react';
+import { Home, PlusCircle, Map, User, Globe, Shield, Truck, BarChart2, Users, Activity, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '../lib/LanguageContext';
 import { useAuth } from '../lib/AuthContext';
 
@@ -31,6 +31,7 @@ function BottomNav() {
   if (role === 'officer') {
     const officerNav = [
       { name: 'Tasks', path: '/officer', icon: Truck },
+      { name: 'Health', path: '/city-health', icon: Activity },
       { name: 'Map',   path: '/map',     icon: Map  },
       { name: 'Profile', path: '/profile', icon: User },
     ];
@@ -93,6 +94,8 @@ function BottomNav() {
       { name: 'Cases',     path: '/admin', query: '?tab=board', icon: Shield   },
       { name: 'Users',     path: '/admin', query: '?tab=users', icon: Users    },
       { name: 'Analytics', path: '/admin', query: '?tab=sla',   icon: BarChart2 },
+      { name: 'Warnings',  path: '/admin/warnings', query: '', icon: AlertTriangle },
+      { name: 'Health',    path: '/city-health', query: '', icon: Activity },
     ];
 
     return (
@@ -151,6 +154,7 @@ function BottomNav() {
       { name: 'Regions',   path: '/superadmin', query: '?tab=regions',   icon: Globe    },
       { name: 'Admins',    path: '/superadmin', query: '?tab=admins',    icon: Shield   },
       { name: 'Analytics', path: '/superadmin', query: '?tab=analytics', icon: BarChart2 },
+      { name: 'Health',    path: '/city-health', query: '', icon: Activity },
     ];
 
     return (
@@ -209,9 +213,9 @@ function BottomNav() {
   // ─────────────────────────────────────────────────────────────
   const navItems = [
     { name: t('navHome'),              path: '/dashboard', icon: Home      },
-    { name: t('navMap'),               path: '/map',       icon: Map       },
+    { name: 'Health',                  path: '/city-health', icon: Activity},
     { name: t('navReport'),            path: '/report',    icon: PlusCircle, isMain: true },
-    { name: t('navFeed') || 'Reports', path: '/feed',      icon: Globe     },
+    { name: t('navMap'),               path: '/map',       icon: Map       },
     { name: t('navProfile'),           path: '/profile',   icon: User      },
   ];
 

@@ -98,6 +98,21 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 FOREIGN KEY (complaint_id) REFERENCES complaints(id)
             )`);
 
+            db.run(`CREATE TABLE IF NOT EXISTS warnings (
+                id TEXT PRIMARY KEY,
+                warning_type TEXT,
+                area TEXT,
+                ward TEXT,
+                department TEXT,
+                risk_level TEXT,
+                confidence_score INTEGER,
+                description TEXT,
+                status TEXT DEFAULT 'Open',
+                generated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                resolved_at DATETIME,
+                related_complaints TEXT -- Stored as JSON string of IDs
+            )`);
+
             db.run(`CREATE TABLE IF NOT EXISTS escalations (
                 id TEXT PRIMARY KEY,
                 complaint_id TEXT,

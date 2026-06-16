@@ -28,6 +28,8 @@ const LiveTracking = lazyRetry(() => import('./pages/LiveTracking'));
 const AdminDashboard = lazyRetry(() => import('./pages/AdminDashboard'));
 const LocalAuthorityDashboard = lazyRetry(() => import('./pages/LocalAuthorityDashboard'));
 const SuperAdminDashboard = lazyRetry(() => import('./pages/SuperAdminDashboard'));
+const WarningCenter = lazyRetry(() => import('./pages/WarningCenter'));
+const CityHealthDashboard = lazyRetry(() => import('./pages/CityHealthDashboard'));
 const MapPage = lazyRetry(() => import('./pages/MapPage'));
 const ProfilePage = lazyRetry(() => import('./pages/ProfilePage'));
 const Feedback = lazyRetry(() => import('./pages/Feedback'));
@@ -132,8 +134,10 @@ function AppShell() {
           <Route path="/profile" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><ProfilePage /></Suspense></ProtectedRoute>} />
           <Route path="/feed" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><PublicFeed /></Suspense></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><AdminDashboard /></Suspense></ProtectedRoute>} />
+          <Route path="/admin/warnings" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><WarningCenter /></Suspense></ProtectedRoute>} />
           <Route path="/officer" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><LocalAuthorityDashboard /></Suspense></ProtectedRoute>} />
           <Route path="/superadmin" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><SuperAdminDashboard /></Suspense></ProtectedRoute>} />
+          <Route path="/city-health" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><CityHealthDashboard /></Suspense></ProtectedRoute>} />
           <Route path="/feedback" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><Feedback /></Suspense></ProtectedRoute>} />
         </Routes>
       </div>

@@ -211,8 +211,8 @@ export default function ReportIssue() {
     setIsSubmitting(true);
     const finalData = {
       citizen_id: user?.id,
-      title: analysis.title || 'Civic Issue',
-      description: chatHistory.filter(m => m.sender === 'user').map(m => m.text).join(' ') || description,
+      title: analysis.title || ('New ' + (analysis.category && analysis.category !== 'Other' ? analysis.category : 'Civic') + ' Issue'),
+      description: chatHistory.filter(m => m.sender === 'user').map(m => m.text).join(' ') || description || analysis.description,
       category: analysis.category,
       department_id: analysis.department_id,
       priority_score: analysis.urgency_level === 'Emergency' ? 10 : analysis.urgency_level === 'High' ? 8 : 5,
@@ -231,7 +231,14 @@ export default function ReportIssue() {
         body: JSON.stringify(finalData)
       });
       const data = await res.json();
-      if(data.success) setStep(4);
+      if(data.success) {
+        if (data.is_duplicate) {
+          alert(data.message || 'The Complaint is already filed');
+          navigate(`/track/${data.complaint_id}`);
+        } else {
+          setStep(4);
+        }
+      }
       else alert(data.error || 'Submission failed');
     } catch (e) {
       alert('Network error');
@@ -315,8 +322,9 @@ export default function ReportIssue() {
                     <div>
                        <label className="text-[10px] font-bold text-slate-500 uppercase block mb-2">Detected Issue</label>
                        <input 
-                         value={analysis.title} 
+                         value={analysis.title || ''} 
                          onChange={e => setAnalysis({...analysis, title: e.target.value})} 
+                         placeholder="E.g. Broken Water Pipe on Main Street"
                          className="w-full bg-white border border-indigo-200 rounded-2xl p-4 text-lg font-bold text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" 
                        />
                     </div>
@@ -328,7 +336,12 @@ export default function ReportIssue() {
                             onChange={(e) => {
                               const cat = e.target.value;
                               const deptId = CIVIC_CATEGORIES_LIST[cat].department_id;
-                              setAnalysis({...analysis, category: cat, department_id: deptId});
+                              let newTitle = analysis.title;
+                              // Auto-update title if it's a generic fallback
+                              if (!newTitle || newTitle === 'Unclassified Civic Issue' || newTitle === 'Civic Issue Detected' || newTitle === 'New Issue' || (newTitle.startsWith('New ') && newTitle.endsWith(' Issue'))) {
+                                newTitle = `New ${cat !== 'Other' ? cat : 'Civic'} Issue`;
+                              }
+                              setAnalysis({...analysis, category: cat, department_id: deptId, title: newTitle});
                             }}
                             className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-bold text-slate-700 appearance-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all pr-12 shadow-sm"
                           >
@@ -353,7 +366,7 @@ export default function ReportIssue() {
                        <div className="relative">
                           <input 
                             value={address} 
-                            onChange={e => setAddress(e.target.value)} 
+                            onChange={e => { setAddress(e.target.value); setLocation(null); }} 
                             placeholder="Enter detailed address or landmark..."
                             className="w-full bg-white border border-indigo-200 rounded-2xl p-4 text-sm text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all pr-12" 
                           />

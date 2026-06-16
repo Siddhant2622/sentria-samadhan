@@ -9,7 +9,7 @@ import { useLanguage } from '../lib/LanguageContext';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, updateUserDistrict } = useAuth();
   const { t } = useLanguage();
   const [complaints, setComplaints] = useState([]);
 
@@ -31,23 +31,19 @@ export default function Dashboard() {
       navigator.geolocation.getCurrentPosition(async (pos) => {
         try {
           const { latitude, longitude } = pos.coords;
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+          const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+          if (!res.ok) throw new Error('Geocoding rate limited');
           const data = await res.json();
-          const detectedDistrict = data.address.state_district || data.address.city || data.address.county;
+          const detectedDistrict = data.locality || data.city || data.principalSubdivision;
           
           if (detectedDistrict) {
             // Find closest match in our MP districts list
             const MP_DISTRICTS = ['Agar Malwa', 'Alirajpur', 'Anuppur', 'Ashoknagar', 'Balaghat', 'Barwani', 'Betul', 'Bhind', 'Bhopal', 'Burhanpur', 'Chhatarpur', 'Chhindwara', 'Damoh', 'Datia', 'Dewas', 'Dhar', 'Dindori', 'Guna', 'Gwalior', 'Harda', 'Hoshangabad', 'Indore', 'Jabalpur', 'Jhabua', 'Katni', 'Khandwa', 'Khargone', 'Mandla', 'Mandsaur', 'Morena', 'Narsinghpur', 'Neemuch', 'Panna', 'Raisen', 'Rajgarh', 'Ratlam', 'Rewa', 'Sagar', 'Satna', 'Sehore', 'Seoni', 'Shahdol', 'Shajapur', 'Sheopur', 'Shivpuri', 'Sidhi', 'Singrauli', 'Tikamgarh', 'Ujjain', 'Umaria', 'Vidisha', 'Niwari'];
             const match = MP_DISTRICTS.find(d => detectedDistrict.toLowerCase().includes(d.toLowerCase()));
             
-            if (match) {
-              await fetch(`${API_BASE}/api/users/${user.id}/district`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ district: match })
-              });
-              // Reload page to apply district filter
-              window.location.reload();
+            if (match && updateUserDistrict) {
+              await updateUserDistrict(match);
+              // user object will update from Context automatically.
             }
           }
         } catch (e) { console.error('Geocoding failed', e); }
@@ -55,7 +51,7 @@ export default function Dashboard() {
     }
 
     return () => clearInterval(interval);
-  }, [user, navigate]);
+  }, [user, navigate, updateUserDistrict]);
 
   const [ratingTarget, setRatingTarget] = useState(null);
   const [ratingValue, setRatingValue] = useState(5);
@@ -241,10 +237,10 @@ export default function Dashboard() {
             <div className="text-center py-10 text-textMuted text-sm">{t('noComplaints')}</div>
           )}
           {complaints.slice(0, 5).map((item, index) => (
-            <motion.button type="button" key={item.id}
+            <motion.div role="button" tabIndex={0} key={item.id}
               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.04 }}
               onClick={() => navigate(`/track/${item.id}`)}
-              className="w-full text-left korean-card p-4" style={{ willChange: 'transform, opacity' }}>
+              className="w-full text-left korean-card p-4 cursor-pointer" style={{ willChange: 'transform, opacity' }}>
               <div className="flex justify-between items-start gap-3 mb-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${urgencyColor(item.urgency_level)}`}>{item.category || 'Civic'}</span>
@@ -299,7 +295,7 @@ export default function Dashboard() {
                 )}
                 <div className="bg-surfaceLight p-1.5 rounded-full text-textMuted shrink-0"><ArrowRight size={14} /></div>
               </div>
-            </motion.button>
+            </motion.div>
           ))}
         </div>
       </div>
