@@ -212,7 +212,8 @@ const CIVIC_CATEGORIES = {
 };
 
 // Initialize Gemini Client strictly for Image Recognition
-const visionAi = new GoogleGenAI({ apiKey: process.env.GEMINI_VISION_API_KEY || 'your_gemini_vision_key' });
+const visionAi = new GoogleGenAI({ apiKey: process.env.GEMINI_VISION_API_KEY || process.env.GEMINI_API_KEY || 'your_gemini_vision_key' });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || process.env.GEMINI_VISION_API_KEY || 'your_gemini_key' });
 
 // Initialize Groq Client as Fallback
 const Groq = require('groq-sdk');
@@ -422,7 +423,7 @@ async function callOpenRouterFallback(contents, preTranscribedText = "") {
 
     const completion = await openrouter.chat.completions.create({
         messages,
-        model: "meta-llama/llama-3.2-11b-vision-instruct:free",
+        model: "google/gemini-2.0-pro-exp-02-05:free",
         temperature: 0.1,
         max_tokens: 1024,
     });
@@ -1239,7 +1240,7 @@ Return ONLY valid JSON with these exact keys:
           is_ai_generated: false,
           fake_reason: "",
           rejection_reason: "",
-          title: "",
+          title: "New Civic Issue Detected",
           description: "Please provide a detailed description of the issue.",
           extracted_text: "",
           category: "",

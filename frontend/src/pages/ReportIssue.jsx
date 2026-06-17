@@ -133,10 +133,16 @@ export default function ReportIssue() {
           navigate(`/track/${data.complaint_id}`);
           return;
         }
-        setAnalysis(data.analysis);
+        let finalAnalysis = data.analysis;
+        if (!finalAnalysis.title) {
+          const fallbackCat = finalAnalysis.category || 'Roads';
+          finalAnalysis.category = fallbackCat;
+          finalAnalysis.title = `New ${fallbackCat !== 'Other' ? fallbackCat : 'Civic'} Issue`;
+        }
+        setAnalysis(finalAnalysis);
         setUploadedMediaUrl(data.media_url);
         setImageHash(data.image_hash || '');
-        const aiMsg = data.analysis.ai_analysis || data.analysis.citizen_question || `Detected: ${data.analysis.title}. ${data.analysis.description || ''}`;
+        const aiMsg = finalAnalysis.ai_analysis || finalAnalysis.citizen_question || `Detected: ${finalAnalysis.title}. ${finalAnalysis.description || ''}`;
         setChatHistory([{ sender: 'ai', text: aiMsg }]);
         setStep(3);
       } else {
