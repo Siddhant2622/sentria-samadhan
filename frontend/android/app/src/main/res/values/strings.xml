@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Sentria Help</string>
+    <string name="title_activity_main">Sentria Help</string>
+    <string name="package_name">com.Sentria.app</string>
+    <string name="custom_url_scheme">com.Sentria.app</string>
+    <string name="default_web_client_id">980761415736-thh81omvll29r2o54o4ciqdq5i3t8rr3.apps.googleusercontent.com</string>
+</resources>

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "980761415736",
+    "project_id": "sentira-ai-51d0e",
+    "storage_bucket": "sentira-ai-51d0e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:980761415736:android:8482ea03e242faae9c16cd",
+        "android_client_info": {
+          "package_name": "com.sentira.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "980761415736-954a4t231u97l5u8p67krg0ptc3eqo24.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sentira.app",
+            "certificate_hash": "cdcdbdf4542b6e53bd3274c5c38d68c2247ccd9d"
+          }
+        },
+        {
+          "client_id": "980761415736-thh81omvll29r2o54o4ciqdq5i3t8rr3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzdDCozZl0pYppgcWiZ_Bg5xp2PqWp9iE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "980761415736-thh81omvll29r2o54o4ciqdq5i3t8rr3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

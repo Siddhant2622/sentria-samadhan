@@ -1,0 +1,9 @@
+node_modules/
+.env
+brain/
+.gemini/
+dist/
+build/
+*.db
+uploads/
+.codex_tmp/

@@ -1,0 +1,52 @@
+services:
+  # ── BACKEND (Node.js + SQLite) ──
+  # NOTE: Disk removed — images are stored in Supabase Storage (free plan compatible)
+  - type: web
+    name: sentria-samadhan-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install --build-from-source
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 3001
+      # ── Gemini AI (Image Scanning) — set manually in Render dashboard ──
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_VISION_API_KEY
+        sync: false
+      # ── Supabase (Image Storage) — set manually in Render dashboard ──
+      - key: SUPABASE_URL
+        value: https://vmebhogqcthxzfwdzfgg.supabase.co
+      - key: SUPABASE_KEY
+        sync: false
+
+  # ── FRONTEND (Vite PWA) ──
+  - type: web
+    name: sentria-samadhan-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    autoDeploy: true
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://sentria-samadhan-backend.onrender.com
+      # ── Firebase Web Config ──
+      - key: VITE_FIREBASE_API_KEY
+        value: AIzaSyBXiUtXfBRY3VzNdjIVOmnKqWsRo8RECq0
+      - key: VITE_FIREBASE_AUTH_DOMAIN
+        value: sentira-ai-51d0e.firebaseapp.com
+      - key: VITE_FIREBASE_PROJECT_ID
+        value: sentira-ai-51d0e
+      - key: VITE_FIREBASE_STORAGE_BUCKET
+        value: sentira-ai-51d0e.firebasestorage.app
+      - key: VITE_FIREBASE_MESSAGING_SENDER_ID
+        value: "980761415736"
+      - key: VITE_FIREBASE_APP_ID
+        value: "1:980761415736:web:a319d04571c97a869c16cd"
