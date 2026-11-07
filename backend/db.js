@@ -143,7 +143,50 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
             // Migration: fix existing officer-1 if it was seeded without department
             db.run(`UPDATE users SET department = 'PWD', name = 'Rajesh Kumar' WHERE id = 'officer-1' AND (department IS NULL OR department = '')`);
-            
+
+            // ── Community Campaigns (PayPal Hackathon) ──────────────
+            db.run(`CREATE TABLE IF NOT EXISTS campaigns (
+                id TEXT PRIMARY KEY,
+                title TEXT NOT NULL,
+                description TEXT,
+                goal_amount REAL NOT NULL,
+                raised_amount REAL DEFAULT 0,
+                category TEXT,
+                organizer_name TEXT,
+                status TEXT DEFAULT 'Active',
+                image_url TEXT,
+                related_complaint_ids TEXT,
+                ai_summary TEXT,
+                verified INTEGER DEFAULT 1,
+                end_date DATETIME,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )`);
+
+            db.run(`CREATE TABLE IF NOT EXISTS donations (
+                id TEXT PRIMARY KEY,
+                campaign_id TEXT NOT NULL,
+                donor_name TEXT DEFAULT 'Anonymous',
+                amount REAL NOT NULL,
+                currency TEXT DEFAULT 'USD',
+                paypal_order_id TEXT,
+                paypal_capture_id TEXT,
+                status TEXT DEFAULT 'pending',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )`);
+
+            // Seed demo campaigns for hackathon demo
+            db.run(`INSERT OR IGNORE INTO campaigns (id, title, description, goal_amount, raised_amount, category, organizer_name, status, verified, end_date) VALUES
+                ('camp-001', 'MP Nagar Road Repair Drive',
+                 'Community-funded initiative to fix 12 potholes on MP Nagar Zone 2 Main Road, identified through 47 citizen complaints analysed by Sentria AI.',
+                 5000, 1850, 'Roads', 'MP Citizens Welfare Trust', 'Active', 1, datetime('now', '+30 days')),
+                ('camp-002', 'Habibganj Streetlight Restoration',
+                 'Fund LED streetlights for 3 dark lanes near Habibganj school zone. AI analysis of 23 complaints flagged this as a safety emergency requiring urgent funding.',
+                 2500, 2100, 'Electricity', 'Bhopal Safe Streets NGO', 'Active', 1, datetime('now', '+15 days')),
+                ('camp-003', 'TT Nagar Park Cleanliness Drive',
+                 'Monthly sanitation campaign for TT Nagar public park. Funds cover waste collection equipment and 2 dedicated sanitation workers for 3 months.',
+                 1000, 1000, 'Sanitation', 'Green Bhopal Foundation', 'Completed', 1, datetime('now', '-5 days'))
+            `);
+
         });
     }
 });

@@ -36,6 +36,8 @@ const Feedback = lazyRetry(() => import('./pages/Feedback'));
 const PublicFeed = lazyRetry(() => import('./pages/PublicFeed'));
 const Login = lazyRetry(() => import('./pages/Login'));
 const VoiceReport = lazyRetry(() => import('./pages/VoiceReport'));
+const Campaigns = lazyRetry(() => import('./pages/Campaigns'));
+const CampaignDetail = lazyRetry(() => import('./pages/CampaignDetail'));
 
 // Full-screen branded splash shown while checking auth state
 function SplashScreen() {
@@ -139,6 +141,8 @@ function AppShell() {
           <Route path="/superadmin" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><SuperAdminDashboard /></Suspense></ProtectedRoute>} />
           <Route path="/city-health" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><CityHealthDashboard /></Suspense></ProtectedRoute>} />
           <Route path="/feedback" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><Feedback /></Suspense></ProtectedRoute>} />
+          <Route path="/campaigns" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><Campaigns /></Suspense></ProtectedRoute>} />
+          <Route path="/campaigns/:id" element={<ProtectedRoute><Suspense fallback={<SplashScreen />}><CampaignDetail /></Suspense></ProtectedRoute>} />
         </Routes>
       </div>
       {!hideNav && <BottomNav />}

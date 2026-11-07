@@ -21,6 +21,15 @@ services:
         value: https://vmebhogqcthxzfwdzfgg.supabase.co
       - key: SUPABASE_KEY
         sync: false
+      # ── PayPal Sandbox — set manually in Render dashboard ──
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_ENV
+        value: sandbox
+      - key: FRONTEND_URL
+        value: https://sentria-samadhan-frontend.onrender.com
 
   # ── FRONTEND (Vite PWA) ──
   - type: web

@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { memo } from 'react';
-import { Home, PlusCircle, Map, User, Globe, Shield, Truck, BarChart2, Users, Activity, AlertTriangle } from 'lucide-react';
+import { Home, PlusCircle, Map, User, Globe, Shield, Truck, BarChart2, Users, Activity, AlertTriangle, Heart } from 'lucide-react';
 import { useLanguage } from '../lib/LanguageContext';
 import { useAuth } from '../lib/AuthContext';
 
@@ -212,11 +212,11 @@ function BottomNav() {
   // 4. CITIZEN NAVIGATION (Default — shown for 'citizen' role or null)
   // ─────────────────────────────────────────────────────────────
   const navItems = [
-    { name: t('navHome'),              path: '/dashboard', icon: Home      },
-    { name: 'Health',                  path: '/city-health', icon: Activity},
-    { name: t('navReport'),            path: '/report',    icon: PlusCircle, isMain: true },
-    { name: t('navMap'),               path: '/map',       icon: Map       },
-    { name: t('navProfile'),           path: '/profile',   icon: User      },
+    { name: t('navHome'),              path: '/dashboard',  icon: Home      },
+    { name: 'Health',                  path: '/city-health', icon: Activity  },
+    { name: t('navReport'),            path: '/report',     icon: PlusCircle, isMain: true },
+    { name: 'Fund',                    path: '/campaigns',  icon: Heart     },
+    { name: t('navProfile'),           path: '/profile',    icon: User      },
   ];
 
   return (

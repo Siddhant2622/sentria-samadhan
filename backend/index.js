@@ -688,6 +688,12 @@ function getImageDimensions(buffer, format) {
 // API ROUTES
 // -------------------------
 
+// ── Community Campaigns & PayPal Routes ──────────────────────
+const campaignRoutes = require('./routes/campaigns');
+const paypalRoutes = require('./routes/paypal');
+app.use('/api', campaignRoutes);
+app.use('/api/paypal', paypalRoutes);
+
 app.get('/', (req, res) => {
     res.json({
       name: 'Sentira AI Backend',
