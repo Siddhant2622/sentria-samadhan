@@ -23,7 +23,7 @@ services:
         sync: false
       # ── PayPal Sandbox — set manually in Render dashboard ──
       - key: PAYPAL_CLIENT_ID
-        sync: false
+        value: BAAnbKIMx5-Gyf-rHSoQg3f0XmN1HBNjL254UT9XzP8Ps--_PWEZjzO0oh7bihr1NnuK_aKj90FLWSvwRE
       - key: PAYPAL_CLIENT_SECRET
         sync: false
       - key: PAYPAL_ENV

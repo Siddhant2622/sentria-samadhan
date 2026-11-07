@@ -80,11 +80,33 @@ const db = new sqlite3.Database(dbPath, (err) => {
             // Migration: add due_date_updated column if not exists
             db.run(`ALTER TABLE complaints ADD COLUMN due_date_updated INTEGER DEFAULT 0`, (err) => {
                 // Ignore error if column already exists
-            });
+                // Seed demo donations for hackathon demo
+            db.run(`INSERT OR IGNORE INTO donations (id, campaign_id, donor_name, amount, currency, paypal_order_id, paypal_capture_id, status) VALUES
+                ('don-d001', 'camp-001', 'Rahul Verma',    500, 'USD', 'PAYPAL-ORDER-001', 'CAP-001', 'completed'),
+                ('don-d002', 'camp-001', 'Priya Sharma',   250, 'USD', 'PAYPAL-ORDER-002', 'CAP-002', 'completed'),
+                ('don-d003', 'camp-001', 'Anonymous',      100, 'USD', 'PAYPAL-ORDER-003', 'CAP-003', 'completed'),
+                ('don-d004', 'camp-001', 'Amit Joshi',    1000, 'USD', 'PAYPAL-ORDER-004', 'CAP-004', 'completed'),
+                ('don-d005', 'camp-002', 'Neha Singh',     500, 'USD', 'PAYPAL-ORDER-005', 'CAP-005', 'completed'),
+                ('don-d006', 'camp-002', 'Rohit Gupta',    750, 'USD', 'PAYPAL-ORDER-006', 'CAP-006', 'completed'),
+                ('don-d007', 'camp-002', 'Sunita Patel',   250, 'USD', 'PAYPAL-ORDER-007', 'CAP-007', 'completed'),
+                ('don-d008', 'camp-002', 'Anonymous',      600, 'USD', 'PAYPAL-ORDER-008', 'CAP-008', 'completed'),
+                ('don-d009', 'camp-003', 'Green Bhopal',  1000, 'USD', 'PAYPAL-ORDER-009', 'CAP-009', 'completed')
+            `);
 
             db.run(`ALTER TABLE users ADD COLUMN fcm_token TEXT`, (err) => {
                 // Ignore error if column already exists
-            });
+                // Seed demo donations for hackathon demo
+            db.run(`INSERT OR IGNORE INTO donations (id, campaign_id, donor_name, amount, currency, paypal_order_id, paypal_capture_id, status) VALUES
+                ('don-d001', 'camp-001', 'Rahul Verma',    500, 'USD', 'PAYPAL-ORDER-001', 'CAP-001', 'completed'),
+                ('don-d002', 'camp-001', 'Priya Sharma',   250, 'USD', 'PAYPAL-ORDER-002', 'CAP-002', 'completed'),
+                ('don-d003', 'camp-001', 'Anonymous',      100, 'USD', 'PAYPAL-ORDER-003', 'CAP-003', 'completed'),
+                ('don-d004', 'camp-001', 'Amit Joshi',    1000, 'USD', 'PAYPAL-ORDER-004', 'CAP-004', 'completed'),
+                ('don-d005', 'camp-002', 'Neha Singh',     500, 'USD', 'PAYPAL-ORDER-005', 'CAP-005', 'completed'),
+                ('don-d006', 'camp-002', 'Rohit Gupta',    750, 'USD', 'PAYPAL-ORDER-006', 'CAP-006', 'completed'),
+                ('don-d007', 'camp-002', 'Sunita Patel',   250, 'USD', 'PAYPAL-ORDER-007', 'CAP-007', 'completed'),
+                ('don-d008', 'camp-002', 'Anonymous',      600, 'USD', 'PAYPAL-ORDER-008', 'CAP-008', 'completed'),
+                ('don-d009', 'camp-003', 'Green Bhopal',  1000, 'USD', 'PAYPAL-ORDER-009', 'CAP-009', 'completed')
+            `);
 
             db.run(`CREATE TABLE IF NOT EXISTS feedback (
                 id TEXT PRIMARY KEY,
@@ -187,7 +209,18 @@ const db = new sqlite3.Database(dbPath, (err) => {
                  1000, 1000, 'Sanitation', 'Green Bhopal Foundation', 'Completed', 1, datetime('now', '-5 days'))
             `);
 
-        });
+            // Seed demo donations for hackathon demo
+            db.run(`INSERT OR IGNORE INTO donations (id, campaign_id, donor_name, amount, currency, paypal_order_id, paypal_capture_id, status) VALUES
+                ('don-d001', 'camp-001', 'Rahul Verma',    500, 'USD', 'PAYPAL-ORDER-001', 'CAP-001', 'completed'),
+                ('don-d002', 'camp-001', 'Priya Sharma',   250, 'USD', 'PAYPAL-ORDER-002', 'CAP-002', 'completed'),
+                ('don-d003', 'camp-001', 'Anonymous',      100, 'USD', 'PAYPAL-ORDER-003', 'CAP-003', 'completed'),
+                ('don-d004', 'camp-001', 'Amit Joshi',    1000, 'USD', 'PAYPAL-ORDER-004', 'CAP-004', 'completed'),
+                ('don-d005', 'camp-002', 'Neha Singh',     500, 'USD', 'PAYPAL-ORDER-005', 'CAP-005', 'completed'),
+                ('don-d006', 'camp-002', 'Rohit Gupta',    750, 'USD', 'PAYPAL-ORDER-006', 'CAP-006', 'completed'),
+                ('don-d007', 'camp-002', 'Sunita Patel',   250, 'USD', 'PAYPAL-ORDER-007', 'CAP-007', 'completed'),
+                ('don-d008', 'camp-002', 'Anonymous',      600, 'USD', 'PAYPAL-ORDER-008', 'CAP-008', 'completed'),
+                ('don-d009', 'camp-003', 'Green Bhopal',  1000, 'USD', 'PAYPAL-ORDER-009', 'CAP-009', 'completed')
+            `);
     }
 });
 

@@ -223,3 +223,4 @@ Built by **Siddhant Giri** for the PayPal AI Hackathon 2026.
 ## 📄 License
 
 [MIT](LICENSE)
+
