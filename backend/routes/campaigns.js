@@ -6,6 +6,22 @@ const { GoogleGenAI } = require('@google/genai');
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
+// PayPal AI Toolkit — used for AI-driven payment analysis
+let paypalToolkit = null;
+try {
+  const { PayPalAgentToolkit } = require('@paypal/agent-toolkit/ai-sdk');
+  if (process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET) {
+    paypalToolkit = new PayPalAgentToolkit({
+      clientId: process.env.PAYPAL_CLIENT_ID,
+      clientSecret: process.env.PAYPAL_CLIENT_SECRET,
+      configuration: { actions: { orders: { create: true, capture: true } } },
+    });
+    console.log('✅ PayPal AI Toolkit initialized');
+  }
+} catch (e) {
+  console.log('⚠️  PayPal AI Toolkit not loaded:', e.message?.substring(0, 60));
+}
+
 function tryParse(str, def) {
   try { return JSON.parse(str); } catch { return def; }
 }
@@ -96,3 +112,4 @@ Write in plain English. Be transparent and concise.`;
 });
 
 module.exports = router;
+

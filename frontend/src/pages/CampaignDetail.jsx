@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Heart, Zap, CheckCircle, Clock, AlertCircle, ExternalLink, Users } from 'lucide-react';
-import { API_BASE } from '../lib/api';
+import { API_BASE } from '../lib/config';
 
 export default function CampaignDetail() {
   const { id } = useParams();
@@ -284,3 +284,4 @@ export default function CampaignDetail() {
     </div>
   );
 }
+

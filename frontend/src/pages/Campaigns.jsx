@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Heart, TrendingUp, Users, CheckCircle, Clock, ArrowRight, Zap } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, Legend } from 'chart.js';
-import { API_BASE } from '../lib/api';
+import { API_BASE } from '../lib/config';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
@@ -136,3 +136,4 @@ const DEMO_CAMPAIGNS = [
   { id: 'camp-001', title: 'MP Nagar Road Repair Drive', description: 'Community-funded initiative to fix 12 potholes identified through citizen complaints.', category: 'Roads', status: 'Active', goal_amount: 5000, raised_amount: 1850, progress_pct: 37, organizer_name: 'MP Citizens Welfare Trust' },
   { id: 'camp-002', title: 'Habibganj Streetlight Restoration', description: 'Fund LED streetlights for 3 dark lanes near Habibganj school zone.', category: 'Electricity', status: 'Active', goal_amount: 2500, raised_amount: 2100, progress_pct: 84, organizer_name: 'Bhopal Safe Streets NGO' },
 ];
+
