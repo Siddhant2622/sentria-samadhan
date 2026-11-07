@@ -11,7 +11,7 @@ export default function CampaignDetail() {
   const [loading, setLoading] = useState(true);
   const [aiSummary, setAiSummary] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
-  const [donateAmount, setDonateAmount] = useState('10');
+  const [donateAmount, setDonateAmount] = useState('500');
   const [donorName, setDonorName] = useState('');
   const [paypalReady, setPaypalReady] = useState(false);
   const [paypalConfigured, setPaypalConfigured] = useState(false);
@@ -168,12 +168,12 @@ export default function CampaignDetail() {
         <div style={{ background: '#fff', borderRadius: 20, padding: 20, boxShadow: '0 4px 20px rgba(0,0,0,0.08)', marginBottom: 12 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
             <div>
-              <span style={{ fontSize: 28, fontWeight: 800, color: '#5B7B6F' }}>${campaign.raised_amount?.toLocaleString()}</span>
+              <span style={{ fontSize: 28, fontWeight: 800, color: '#5B7B6F' }}>₹{campaign.raised_amount?.toLocaleString('en-IN')}</span>
               <span style={{ fontSize: 14, color: '#999' }}> raised</span>
             </div>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: 22, fontWeight: 700, color: '#2D2D2D' }}>{pct}%</div>
-              <div style={{ fontSize: 12, color: '#999' }}>of ${campaign.goal_amount?.toLocaleString()}</div>
+              <div style={{ fontSize: 12, color: '#999' }}>of ₹{campaign.goal_amount?.toLocaleString('en-IN')}</div>
             </div>
           </div>
           <div style={{ background: '#F0EDE8', borderRadius: 999, height: 10, overflow: 'hidden', marginBottom: 12 }}>
@@ -203,10 +203,10 @@ export default function CampaignDetail() {
 
             {/* Quick amounts */}
             <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-              {['5','10','25','50'].map(a => (
+              {['100','250','500','1000'].map(a => (
                 <button key={a} onClick={() => setDonateAmount(a)}
-                  style={{ flex: 1, padding: '8px 0', border: '2px solid', borderColor: donateAmount === a ? '#5B7B6F' : '#E8E0D4', borderRadius: 10, background: donateAmount === a ? '#5B7B6F' : '#fff', color: donateAmount === a ? '#fff' : '#555', fontWeight: 700, cursor: 'pointer', fontSize: 14 }}>
-                  ${a}
+                  style={{ flex: 1, padding: '8px 0', border: '2px solid', borderColor: donateAmount === a ? '#5B7B6F' : '#E8E0D4', borderRadius: 10, background: donateAmount === a ? '#5B7B6F' : '#fff', color: donateAmount === a ? '#fff' : '#555', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+                  ₹{a}
                 </button>
               ))}
             </div>
@@ -214,7 +214,7 @@ export default function CampaignDetail() {
             {/* Custom amount + name */}
             <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
               <div style={{ flex: 1, position: 'relative' }}>
-                <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#999', fontWeight: 700 }}>$</span>
+                <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#999', fontWeight: 700 }}>₹</span>
                 <input type="number" min="1" value={donateAmount} onChange={e => setDonateAmount(e.target.value)}
                   style={{ width: '100%', padding: '10px 10px 10px 24px', border: '1.5px solid #E8E0D4', borderRadius: 10, fontSize: 15, fontWeight: 700, outline: 'none', boxSizing: 'border-box' }} />
               </div>
@@ -275,7 +275,7 @@ export default function CampaignDetail() {
                     <div style={{ fontSize: 11, color: '#999' }}>{new Date(d.created_at).toLocaleDateString()}</div>
                   </div>
                 </div>
-                <span style={{ fontWeight: 700, color: '#5B7B6F', fontSize: 15 }}>${d.amount}</span>
+                <span style={{ fontWeight: 700, color: '#5B7B6F', fontSize: 15 }}>₹{d.amount?.toLocaleString('en-IN')}</span>
               </div>
             ))}
           </div>

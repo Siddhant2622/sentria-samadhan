@@ -151,7 +151,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 campaign_id TEXT NOT NULL,
                 donor_name TEXT DEFAULT 'Anonymous',
                 amount REAL NOT NULL,
-                currency TEXT DEFAULT 'USD',
+                currency TEXT DEFAULT 'INR',
                 paypal_order_id TEXT,
                 paypal_capture_id TEXT,
                 status TEXT DEFAULT 'pending',
@@ -171,26 +171,26 @@ const db = new sqlite3.Database(dbPath, (err) => {
             db.run(`INSERT OR IGNORE INTO campaigns (id, title, description, goal_amount, raised_amount, category, organizer_name, status, verified, end_date) VALUES
                 ('camp-001', 'MP Nagar Road Repair Drive',
                  'Community-funded initiative to fix 12 potholes on MP Nagar Zone 2 Main Road, identified through 47 citizen complaints analysed by Sentria AI.',
-                 5000, 1850, 'Roads', 'MP Citizens Welfare Trust', 'Active', 1, datetime('now', '+30 days')),
+                 415000, 153550, 'Roads', 'MP Citizens Welfare Trust', 'Active', 1, datetime('now', '+30 days')),
                 ('camp-002', 'Habibganj Streetlight Restoration',
                  'Fund LED streetlights for 3 dark lanes near Habibganj school zone. AI analysis of 23 complaints flagged this as a safety emergency requiring urgent funding.',
-                 2500, 2100, 'Electricity', 'Bhopal Safe Streets NGO', 'Active', 1, datetime('now', '+15 days')),
+                 207500, 174300, 'Electricity', 'Bhopal Safe Streets NGO', 'Active', 1, datetime('now', '+15 days')),
                 ('camp-003', 'TT Nagar Park Cleanliness Drive',
                  'Monthly sanitation campaign for TT Nagar public park. Funds cover waste collection equipment and 2 dedicated sanitation workers for 3 months.',
-                 1000, 1000, 'Sanitation', 'Green Bhopal Foundation', 'Completed', 1, datetime('now', '-5 days'))
+                 83000, 83000, 'Sanitation', 'Green Bhopal Foundation', 'Completed', 1, datetime('now', '-5 days'))
             `);
 
             // Seed demo donations
             db.run(`INSERT OR IGNORE INTO donations (id, campaign_id, donor_name, amount, currency, paypal_order_id, paypal_capture_id, status) VALUES
-                ('don-d001', 'camp-001', 'Rahul Verma',   500,  'USD', 'PAYPAL-ORDER-001', 'CAP-001', 'completed'),
-                ('don-d002', 'camp-001', 'Priya Sharma',  250,  'USD', 'PAYPAL-ORDER-002', 'CAP-002', 'completed'),
-                ('don-d003', 'camp-001', 'Anonymous',     100,  'USD', 'PAYPAL-ORDER-003', 'CAP-003', 'completed'),
-                ('don-d004', 'camp-001', 'Amit Joshi',   1000,  'USD', 'PAYPAL-ORDER-004', 'CAP-004', 'completed'),
-                ('don-d005', 'camp-002', 'Neha Singh',    500,  'USD', 'PAYPAL-ORDER-005', 'CAP-005', 'completed'),
-                ('don-d006', 'camp-002', 'Rohit Gupta',   750,  'USD', 'PAYPAL-ORDER-006', 'CAP-006', 'completed'),
-                ('don-d007', 'camp-002', 'Sunita Patel',  250,  'USD', 'PAYPAL-ORDER-007', 'CAP-007', 'completed'),
-                ('don-d008', 'camp-002', 'Anonymous',     600,  'USD', 'PAYPAL-ORDER-008', 'CAP-008', 'completed'),
-                ('don-d009', 'camp-003', 'Green Bhopal', 1000,  'USD', 'PAYPAL-ORDER-009', 'CAP-009', 'completed')
+                ('don-d001', 'camp-001', 'Rahul Verma',   41500,  'INR', 'PAYPAL-ORDER-001', 'CAP-001', 'completed'),
+                ('don-d002', 'camp-001', 'Priya Sharma',  20750,  'INR', 'PAYPAL-ORDER-002', 'CAP-002', 'completed'),
+                ('don-d003', 'camp-001', 'Anonymous',      8300,  'INR', 'PAYPAL-ORDER-003', 'CAP-003', 'completed'),
+                ('don-d004', 'camp-001', 'Amit Joshi',    83000,  'INR', 'PAYPAL-ORDER-004', 'CAP-004', 'completed'),
+                ('don-d005', 'camp-002', 'Neha Singh',    41500,  'INR', 'PAYPAL-ORDER-005', 'CAP-005', 'completed'),
+                ('don-d006', 'camp-002', 'Rohit Gupta',   62250,  'INR', 'PAYPAL-ORDER-006', 'CAP-006', 'completed'),
+                ('don-d007', 'camp-002', 'Sunita Patel',  20750,  'INR', 'PAYPAL-ORDER-007', 'CAP-007', 'completed'),
+                ('don-d008', 'camp-002', 'Anonymous',     49800,  'INR', 'PAYPAL-ORDER-008', 'CAP-008', 'completed'),
+                ('don-d009', 'camp-003', 'Green Bhopal',  83000,  'INR', 'PAYPAL-ORDER-009', 'CAP-009', 'completed')
             `);
         });
     }

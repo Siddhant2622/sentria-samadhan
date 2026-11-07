@@ -94,7 +94,7 @@ router.get('/campaigns/:id/ai-summary', async (req, res) => {
 Campaign: ${campaign.title}
 Description: ${campaign.description}
 Category: ${campaign.category}
-Goal: $${campaign.goal_amount} | Raised: $${campaign.raised_amount}
+Goal: ₹${campaign.goal_amount?.toLocaleString('en-IN')} | Raised: ₹${campaign.raised_amount?.toLocaleString('en-IN')}
 Organizer: ${campaign.organizer_name} | Status: ${campaign.status}
 
 Write in plain English. Be transparent and concise.`;
@@ -105,7 +105,7 @@ Write in plain English. Be transparent and concise.`;
       res.json({ summary });
     } catch (e) {
       res.json({
-        summary: `AI Analysis for "${campaign.title}": This campaign targets ${campaign.category} improvements in the community, aiming to raise $${campaign.goal_amount}. All contributions are processed through PayPal Sandbox and recorded transparently. Funds are managed by ${campaign.organizer_name}. Currently ${Math.round((campaign.raised_amount / campaign.goal_amount) * 100)}% funded with $${campaign.raised_amount} raised. No inconsistencies detected by AI review.`
+        summary: `AI Analysis for "${campaign.title}": This campaign targets ${campaign.category} improvements in the community, aiming to raise ₹${campaign.goal_amount?.toLocaleString('en-IN')}. All contributions are processed through PayPal Sandbox and recorded transparently. Funds are managed by ${campaign.organizer_name}. Currently ${Math.round((campaign.raised_amount / campaign.goal_amount) * 100)}% funded with ₹${campaign.raised_amount?.toLocaleString('en-IN')} raised. No inconsistencies detected by AI review.`
       });
     }
   });
@@ -142,7 +142,7 @@ Respond with a JSON object (no markdown, just JSON) with these fields:
 - title: short campaign title (max 10 words)
 - description: 2-3 sentence campaign description explaining the civic need
 - category: one of [Environment, Infrastructure, Health, Education, Sanitation, Safety, Other]
-- goal_amount: suggested fundraising goal in USD (number only, e.g. 5000)
+- goal_amount: suggested fundraising goal in INR (number only, e.g. 500000)
 - rationale: 1 sentence explaining why these complaints are grouped together`;
 
       try {

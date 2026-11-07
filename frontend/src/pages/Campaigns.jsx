@@ -32,8 +32,8 @@ export default function Campaigns() {
   const chartData = {
     labels: campaigns.slice(0, 5).map(c => c.title.substring(0, 18) + '…'),
     datasets: [
-      { label: 'Raised ($)', data: campaigns.slice(0, 5).map(c => c.raised_amount), backgroundColor: '#5B7B6F', borderRadius: 6 },
-      { label: 'Goal ($)',   data: campaigns.slice(0, 5).map(c => c.goal_amount),   backgroundColor: '#E8E0D4', borderRadius: 6 },
+      { label: 'Raised (₹)', data: campaigns.slice(0, 5).map(c => c.raised_amount), backgroundColor: '#5B7B6F', borderRadius: 6 },
+      { label: 'Goal (₹)',   data: campaigns.slice(0, 5).map(c => c.goal_amount),   backgroundColor: '#E8E0D4', borderRadius: 6 },
     ],
   };
 
@@ -48,8 +48,8 @@ export default function Campaigns() {
         {/* Stats row */}
         <div style={{ display: 'flex', gap: 10 }}>
           {[
-            { label: 'Total Raised', value: `$${totalRaised.toLocaleString()}`, icon: TrendingUp },
-            { label: 'of Goal', value: `$${totalGoal.toLocaleString()}`, icon: Heart },
+            { label: 'Total Raised', value: `₹${totalRaised.toLocaleString('en-IN')}`, icon: TrendingUp },
+            { label: 'of Goal', value: `₹${totalGoal.toLocaleString('en-IN')}`, icon: Heart },
             { label: 'Campaigns', value: campaigns.length, icon: Users },
           ].map(({ label, value, icon: Icon }) => (
             <div key={label} style={{ flex: 1, background: 'rgba(255,255,255,0.15)', borderRadius: 12, padding: '10px 8px', textAlign: 'center', backdropFilter: 'blur(10px)' }}>
@@ -109,8 +109,8 @@ export default function Campaigns() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <span style={{ fontWeight: 700, fontSize: 15, color: '#5B7B6F' }}>${c.raised_amount?.toLocaleString()}</span>
-                  <span style={{ fontSize: 12, color: '#999' }}> of ${c.goal_amount?.toLocaleString()}</span>
+                  <span style={{ fontWeight: 700, fontSize: 15, color: '#5B7B6F' }}>₹{c.raised_amount?.toLocaleString('en-IN')}</span>
+                  <span style={{ fontSize: 12, color: '#999' }}> of ₹{c.goal_amount?.toLocaleString('en-IN')}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#5B7B6F', fontSize: 12, fontWeight: 600 }}>
                   {c.progress_pct}% · View <ArrowRight size={14} />
@@ -133,7 +133,7 @@ export default function Campaigns() {
 }
 
 const DEMO_CAMPAIGNS = [
-  { id: 'camp-001', title: 'MP Nagar Road Repair Drive', description: 'Community-funded initiative to fix 12 potholes identified through citizen complaints.', category: 'Roads', status: 'Active', goal_amount: 5000, raised_amount: 1850, progress_pct: 37, organizer_name: 'MP Citizens Welfare Trust' },
-  { id: 'camp-002', title: 'Habibganj Streetlight Restoration', description: 'Fund LED streetlights for 3 dark lanes near Habibganj school zone.', category: 'Electricity', status: 'Active', goal_amount: 2500, raised_amount: 2100, progress_pct: 84, organizer_name: 'Bhopal Safe Streets NGO' },
+  { id: 'camp-001', title: 'MP Nagar Road Repair Drive', description: 'Community-funded initiative to fix 12 potholes identified through citizen complaints.', category: 'Roads', status: 'Active', goal_amount: 415000, raised_amount: 153550, progress_pct: 37, organizer_name: 'MP Citizens Welfare Trust' },
+  { id: 'camp-002', title: 'Habibganj Streetlight Restoration', description: 'Fund LED streetlights for 3 dark lanes near Habibganj school zone.', category: 'Electricity', status: 'Active', goal_amount: 207500, raised_amount: 174300, progress_pct: 84, organizer_name: 'Bhopal Safe Streets NGO' },
 ];
 

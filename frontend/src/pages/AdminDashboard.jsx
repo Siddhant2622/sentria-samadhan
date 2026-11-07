@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Shield, Filter, Search, Map as MapIcon, BarChart2, Bell, Clock, AlertTriangle, Home, Users, CheckCircle, Ban, Eye, TrendingUp, ChevronRight, Plus, Zap, X, LogOut } from 'lucide-react';
+import { Shield, Filter, Search, Map as MapIcon, BarChart2, Bell, Clock, AlertTriangle, Home, Users, CheckCircle, Ban, Eye, TrendingUp, ChevronRight, Plus, Zap, X, LogOut, Heart } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchComplaints, formatRelativeTime, statusColor, urgencyColor, openInGoogleMaps, resolveImageUrl } from '../lib/api';
@@ -28,6 +28,22 @@ export default function AdminDashboard() {
   const [assigningTo, setAssigningTo] = useState(null);
   const [officerRatings, setOfficerRatings] = useState({});
   const [showNotifications, setShowNotifications] = useState(false);
+
+  // Campaign creator state
+  const [campaigns, setCampaigns] = useState([]);
+  const [showCreateCampaign, setShowCreateCampaign] = useState(false);
+  const [campaignForm, setCampaignForm] = useState({ title: '', description: '', goal_amount: '', category: 'Infrastructure', organizer_name: '', end_date: '' });
+  const [campaignLoading, setCampaignLoading] = useState(false);
+  const [campaignSuccess, setCampaignSuccess] = useState('');
+
+  useEffect(() => {
+    if (activeTab === 'fund') {
+      fetch(`${API_BASE}/api/campaigns`)
+        .then(r => r.json())
+        .then(data => setCampaigns(Array.isArray(data) ? data : []))
+        .catch(() => {});
+    }
+  }, [activeTab]);
   const [seenIds, setSeenIds] = useState(() => {
     try { return new Set(JSON.parse(localStorage.getItem('sentria_admin_notifs') || '[]')); }
     catch { return new Set(); }
@@ -90,6 +106,7 @@ export default function AdminDashboard() {
     { id: 'fraud', label: 'Fraud', icon: AlertTriangle },
     { id: 'users', label: 'Users', icon: Users },
     { id: 'sla', label: 'SLA', icon: BarChart2 },
+    { id: 'fund', label: 'Fund', icon: Heart },
   ];
 
   return (

@@ -23,7 +23,7 @@ async function getAccessToken() {
 router.get('/config', (req, res) => {
   res.json({
     clientId: PAYPAL_CLIENT_ID || 'sb',
-    currency: 'USD',
+    currency: 'INR',
     configured: Boolean(PAYPAL_CLIENT_ID && PAYPAL_CLIENT_SECRET),
   });
 });
@@ -32,7 +32,7 @@ router.get('/config', (req, res) => {
 router.post('/create-order', async (req, res) => {
   const { amount, campaign_id, donor_name } = req.body;
   if (!amount || !campaign_id) return res.status(400).json({ error: 'amount and campaign_id required' });
-  if (parseFloat(amount) < 1) return res.status(400).json({ error: 'Minimum donation is $1' });
+  if (parseFloat(amount) < 1) return res.status(400).json({ error: 'Minimum donation is ₹1' });
 
   db.get(`SELECT id, title, status FROM campaigns WHERE id = ?`, [campaign_id], async (err, campaign) => {
     if (err || !campaign) return res.status(404).json({ error: 'Campaign not found' });
@@ -74,7 +74,7 @@ router.post('/create-order', async (req, res) => {
       const donationId = 'don-' + uuidv4().split('-')[0];
       db.run(
         `INSERT INTO donations (id, campaign_id, donor_name, amount, currency, paypal_order_id, status) VALUES (?,?,?,?,?,?,?)`,
-        [donationId, campaign_id, donor_name || 'Anonymous', amount, 'USD', order.id, 'pending']
+        [donationId, campaign_id, donor_name || 'Anonymous', amount, 'INR', order.id, 'pending']
       );
 
       res.json({ orderID: order.id, donationId });
