@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Clock, ArrowRight, ShieldCheck, Camera, Bell, Activity, Zap, LogOut, Shield } from 'lucide-react';
+import { MapPin, Clock, ArrowRight, ShieldCheck, Camera, Bell, Activity, Zap, LogOut, Shield, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchComplaints, formatRelativeTime, statusColor, urgencyColor, openInGoogleMaps, resolveImageUrl } from '../lib/api';
 import { API_BASE } from '../lib/config';
@@ -175,6 +175,23 @@ export default function Dashboard() {
             <p className="text-[10px] text-textMuted uppercase tracking-wide">{item.label}</p>
           </div>
         ))}
+      </div>
+
+      {/* PayPal Community Fund Campaigns Card */}
+      <div className="px-6 mt-4">
+        <motion.button whileTap={{ scale: 0.97 }} onClick={() => navigate('/campaigns')}
+          className="w-full rounded-2xl p-4 flex items-center gap-4 text-left shadow-[0_4px_20px_rgba(91,123,111,0.15)] border border-primary/20 overflow-hidden relative"
+          style={{ background: 'linear-gradient(135deg, #5B7B6F 0%, #7BA8A0 100%)' }}>
+          <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl translate-x-6 -translate-y-6" />
+          <div className="bg-white/20 p-3 rounded-xl shrink-0 backdrop-blur-sm">
+            <Heart size={20} className="text-white" />
+          </div>
+          <div className="relative z-10 flex-1">
+            <div className="text-white font-bold text-sm">💳 Community Fund Campaigns</div>
+            <div className="text-white/80 text-xs mt-0.5">Donate via PayPal · AI-verified projects</div>
+          </div>
+          <ArrowRight size={18} className="text-white/70 relative z-10" />
+        </motion.button>
       </div>
 
       <div className="px-6 mt-6">

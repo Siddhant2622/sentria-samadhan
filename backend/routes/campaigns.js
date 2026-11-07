@@ -111,5 +111,65 @@ Write in plain English. Be transparent and concise.`;
   });
 });
 
+// POST /api/ai/suggest-campaign
+// Body: { complaint_ids: [...] } — Gemini groups complaints and suggests a campaign
+router.post('/ai/suggest-campaign', async (req, res) => {
+  const { complaint_ids } = req.body;
+  if (!Array.isArray(complaint_ids) || complaint_ids.length === 0) {
+    return res.status(400).json({ error: 'complaint_ids array is required' });
+  }
+
+  // Fetch complaints from DB
+  const placeholders = complaint_ids.map(() => '?').join(',');
+  db.all(`SELECT id, title, description, category, location FROM complaints WHERE id IN (${placeholders}) LIMIT 20`,
+    complaint_ids,
+    async (err, complaints) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (!complaints || complaints.length === 0) {
+        return res.status(404).json({ error: 'No matching complaints found' });
+      }
+
+      const complaintList = complaints.map((c, i) =>
+        `${i + 1}. [${c.category}] ${c.title}: ${c.description || 'No description'} (Location: ${c.location || 'Unknown'})`
+      ).join('\n');
+
+      const prompt = `You are Sentria AI, a civic campaign assistant. Based on these related citizen complaints, suggest a community funding campaign that could help resolve these issues:
+
+Complaints:
+${complaintList}
+
+Respond with a JSON object (no markdown, just JSON) with these fields:
+- title: short campaign title (max 10 words)
+- description: 2-3 sentence campaign description explaining the civic need
+- category: one of [Environment, Infrastructure, Health, Education, Sanitation, Safety, Other]
+- goal_amount: suggested fundraising goal in USD (number only, e.g. 5000)
+- rationale: 1 sentence explaining why these complaints are grouped together`;
+
+      try {
+        const response = await ai.models.generateContent({ model: 'gemini-2.0-flash', contents: prompt });
+        let text = response.text.trim();
+        // Strip markdown code fences if present
+        text = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+        const suggestion = JSON.parse(text);
+        res.json({ suggestion, complaint_count: complaints.length });
+      } catch (e) {
+        // Fallback suggestion
+        const categories = [...new Set(complaints.map(c => c.category).filter(Boolean))];
+        res.json({
+          suggestion: {
+            title: `Community Initiative: ${categories[0] || 'Civic'} Improvement Drive`,
+            description: `A community-funded initiative to address ${complaints.length} reported civic issues in your area. Funds will be used for direct remediation and monitoring.`,
+            category: categories[0] || 'Other',
+            goal_amount: complaints.length * 500,
+            rationale: `${complaints.length} complaints share common civic themes and geographic proximity.`,
+          },
+          complaint_count: complaints.length,
+          ai_error: e.message,
+        });
+      }
+    }
+  );
+});
+
 module.exports = router;
 

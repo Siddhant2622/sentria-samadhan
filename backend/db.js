@@ -17,11 +17,10 @@ if (dbDir !== __dirname && !fs.existsSync(dbDir)) {
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('❌ DATABASE ERROR:', err.message);
-        process.exit(1); // Exit with error so Render shows it in logs
+        process.exit(1);
     } else {
         console.log(`✅ Connected to SQLite at: ${dbPath}`);
-        
-        // Initialize tables
+
         db.serialize(() => {
             db.run(`CREATE TABLE IF NOT EXISTS users (
                 id TEXT PRIMARY KEY,
@@ -60,8 +59,8 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 assigned_officer_id TEXT,
                 assigned_officer_name TEXT,
                 department_id TEXT,
-                media_urls TEXT, -- Stored as JSON string
-                work_updates TEXT, -- Stored as JSON string
+                media_urls TEXT,
+                work_updates TEXT,
                 image_hash TEXT,
                 reports_count INTEGER DEFAULT 1,
                 is_fake INTEGER DEFAULT 0,
@@ -77,36 +76,9 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 FOREIGN KEY (assigned_officer_id) REFERENCES users(id)
             )`);
 
-            // Migration: add due_date_updated column if not exists
-            db.run(`ALTER TABLE complaints ADD COLUMN due_date_updated INTEGER DEFAULT 0`, (err) => {
-                // Ignore error if column already exists
-                // Seed demo donations for hackathon demo
-            db.run(`INSERT OR IGNORE INTO donations (id, campaign_id, donor_name, amount, currency, paypal_order_id, paypal_capture_id, status) VALUES
-                ('don-d001', 'camp-001', 'Rahul Verma',    500, 'USD', 'PAYPAL-ORDER-001', 'CAP-001', 'completed'),
-                ('don-d002', 'camp-001', 'Priya Sharma',   250, 'USD', 'PAYPAL-ORDER-002', 'CAP-002', 'completed'),
-                ('don-d003', 'camp-001', 'Anonymous',      100, 'USD', 'PAYPAL-ORDER-003', 'CAP-003', 'completed'),
-                ('don-d004', 'camp-001', 'Amit Joshi',    1000, 'USD', 'PAYPAL-ORDER-004', 'CAP-004', 'completed'),
-                ('don-d005', 'camp-002', 'Neha Singh',     500, 'USD', 'PAYPAL-ORDER-005', 'CAP-005', 'completed'),
-                ('don-d006', 'camp-002', 'Rohit Gupta',    750, 'USD', 'PAYPAL-ORDER-006', 'CAP-006', 'completed'),
-                ('don-d007', 'camp-002', 'Sunita Patel',   250, 'USD', 'PAYPAL-ORDER-007', 'CAP-007', 'completed'),
-                ('don-d008', 'camp-002', 'Anonymous',      600, 'USD', 'PAYPAL-ORDER-008', 'CAP-008', 'completed'),
-                ('don-d009', 'camp-003', 'Green Bhopal',  1000, 'USD', 'PAYPAL-ORDER-009', 'CAP-009', 'completed')
-            `);
-
-            db.run(`ALTER TABLE users ADD COLUMN fcm_token TEXT`, (err) => {
-                // Ignore error if column already exists
-                // Seed demo donations for hackathon demo
-            db.run(`INSERT OR IGNORE INTO donations (id, campaign_id, donor_name, amount, currency, paypal_order_id, paypal_capture_id, status) VALUES
-                ('don-d001', 'camp-001', 'Rahul Verma',    500, 'USD', 'PAYPAL-ORDER-001', 'CAP-001', 'completed'),
-                ('don-d002', 'camp-001', 'Priya Sharma',   250, 'USD', 'PAYPAL-ORDER-002', 'CAP-002', 'completed'),
-                ('don-d003', 'camp-001', 'Anonymous',      100, 'USD', 'PAYPAL-ORDER-003', 'CAP-003', 'completed'),
-                ('don-d004', 'camp-001', 'Amit Joshi',    1000, 'USD', 'PAYPAL-ORDER-004', 'CAP-004', 'completed'),
-                ('don-d005', 'camp-002', 'Neha Singh',     500, 'USD', 'PAYPAL-ORDER-005', 'CAP-005', 'completed'),
-                ('don-d006', 'camp-002', 'Rohit Gupta',    750, 'USD', 'PAYPAL-ORDER-006', 'CAP-006', 'completed'),
-                ('don-d007', 'camp-002', 'Sunita Patel',   250, 'USD', 'PAYPAL-ORDER-007', 'CAP-007', 'completed'),
-                ('don-d008', 'camp-002', 'Anonymous',      600, 'USD', 'PAYPAL-ORDER-008', 'CAP-008', 'completed'),
-                ('don-d009', 'camp-003', 'Green Bhopal',  1000, 'USD', 'PAYPAL-ORDER-009', 'CAP-009', 'completed')
-            `);
+            // Safe migrations — ignore errors if columns already exist
+            db.run(`ALTER TABLE complaints ADD COLUMN due_date_updated INTEGER DEFAULT 0`, () => {});
+            db.run(`ALTER TABLE users ADD COLUMN fcm_token TEXT`, () => {});
 
             db.run(`CREATE TABLE IF NOT EXISTS feedback (
                 id TEXT PRIMARY KEY,
@@ -132,7 +104,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 status TEXT DEFAULT 'Open',
                 generated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 resolved_at DATETIME,
-                related_complaints TEXT -- Stored as JSON string of IDs
+                related_complaints TEXT
             )`);
 
             db.run(`CREATE TABLE IF NOT EXISTS escalations (
@@ -155,16 +127,6 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 added_by TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )`);
-            
-            // Seed a default admin and officer if they don't exist
-            db.run(`INSERT OR IGNORE INTO users (id, name, phone, email, role, department, district, aadhaar_verified) VALUES 
-                ('admin-1', 'Admin Municipal Corp', '9999999999', 'admin@sentria.gov.in', 'Admin', 'MUNICIPAL_CORP', '', 1),
-                ('officer-1', 'Rajesh Kumar', '8888888888', 'rajesh@pwd.gov.in', 'Officer', 'PWD', '', 1),
-                ('citizen-1', 'Aarav Sharma', '7777777777', 'aarav@citizen.com', 'Citizen', '', '', 1)
-            `);
-
-            // Migration: fix existing officer-1 if it was seeded without department
-            db.run(`UPDATE users SET department = 'PWD', name = 'Rajesh Kumar' WHERE id = 'officer-1' AND (department IS NULL OR department = '')`);
 
             // ── Community Campaigns (PayPal Hackathon) ──────────────
             db.run(`CREATE TABLE IF NOT EXISTS campaigns (
@@ -196,7 +158,16 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )`);
 
-            // Seed demo campaigns for hackathon demo
+            // Seed default users
+            db.run(`INSERT OR IGNORE INTO users (id, name, phone, email, role, department, district, aadhaar_verified) VALUES
+                ('admin-1', 'Admin Municipal Corp', '9999999999', 'admin@sentria.gov.in', 'Admin', 'MUNICIPAL_CORP', '', 1),
+                ('officer-1', 'Rajesh Kumar', '8888888888', 'rajesh@pwd.gov.in', 'Officer', 'PWD', '', 1),
+                ('citizen-1', 'Aarav Sharma', '7777777777', 'aarav@citizen.com', 'Citizen', '', '', 1)
+            `);
+
+            db.run(`UPDATE users SET department = 'PWD', name = 'Rajesh Kumar' WHERE id = 'officer-1' AND (department IS NULL OR department = '')`);
+
+            // Seed demo campaigns
             db.run(`INSERT OR IGNORE INTO campaigns (id, title, description, goal_amount, raised_amount, category, organizer_name, status, verified, end_date) VALUES
                 ('camp-001', 'MP Nagar Road Repair Drive',
                  'Community-funded initiative to fix 12 potholes on MP Nagar Zone 2 Main Road, identified through 47 citizen complaints analysed by Sentria AI.',
@@ -209,18 +180,19 @@ const db = new sqlite3.Database(dbPath, (err) => {
                  1000, 1000, 'Sanitation', 'Green Bhopal Foundation', 'Completed', 1, datetime('now', '-5 days'))
             `);
 
-            // Seed demo donations for hackathon demo
+            // Seed demo donations
             db.run(`INSERT OR IGNORE INTO donations (id, campaign_id, donor_name, amount, currency, paypal_order_id, paypal_capture_id, status) VALUES
-                ('don-d001', 'camp-001', 'Rahul Verma',    500, 'USD', 'PAYPAL-ORDER-001', 'CAP-001', 'completed'),
-                ('don-d002', 'camp-001', 'Priya Sharma',   250, 'USD', 'PAYPAL-ORDER-002', 'CAP-002', 'completed'),
-                ('don-d003', 'camp-001', 'Anonymous',      100, 'USD', 'PAYPAL-ORDER-003', 'CAP-003', 'completed'),
-                ('don-d004', 'camp-001', 'Amit Joshi',    1000, 'USD', 'PAYPAL-ORDER-004', 'CAP-004', 'completed'),
-                ('don-d005', 'camp-002', 'Neha Singh',     500, 'USD', 'PAYPAL-ORDER-005', 'CAP-005', 'completed'),
-                ('don-d006', 'camp-002', 'Rohit Gupta',    750, 'USD', 'PAYPAL-ORDER-006', 'CAP-006', 'completed'),
-                ('don-d007', 'camp-002', 'Sunita Patel',   250, 'USD', 'PAYPAL-ORDER-007', 'CAP-007', 'completed'),
-                ('don-d008', 'camp-002', 'Anonymous',      600, 'USD', 'PAYPAL-ORDER-008', 'CAP-008', 'completed'),
-                ('don-d009', 'camp-003', 'Green Bhopal',  1000, 'USD', 'PAYPAL-ORDER-009', 'CAP-009', 'completed')
+                ('don-d001', 'camp-001', 'Rahul Verma',   500,  'USD', 'PAYPAL-ORDER-001', 'CAP-001', 'completed'),
+                ('don-d002', 'camp-001', 'Priya Sharma',  250,  'USD', 'PAYPAL-ORDER-002', 'CAP-002', 'completed'),
+                ('don-d003', 'camp-001', 'Anonymous',     100,  'USD', 'PAYPAL-ORDER-003', 'CAP-003', 'completed'),
+                ('don-d004', 'camp-001', 'Amit Joshi',   1000,  'USD', 'PAYPAL-ORDER-004', 'CAP-004', 'completed'),
+                ('don-d005', 'camp-002', 'Neha Singh',    500,  'USD', 'PAYPAL-ORDER-005', 'CAP-005', 'completed'),
+                ('don-d006', 'camp-002', 'Rohit Gupta',   750,  'USD', 'PAYPAL-ORDER-006', 'CAP-006', 'completed'),
+                ('don-d007', 'camp-002', 'Sunita Patel',  250,  'USD', 'PAYPAL-ORDER-007', 'CAP-007', 'completed'),
+                ('don-d008', 'camp-002', 'Anonymous',     600,  'USD', 'PAYPAL-ORDER-008', 'CAP-008', 'completed'),
+                ('don-d009', 'camp-003', 'Green Bhopal', 1000,  'USD', 'PAYPAL-ORDER-009', 'CAP-009', 'completed')
             `);
+        });
     }
 });
 
